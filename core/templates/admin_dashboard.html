@@ -1,0 +1,2722 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}ePMS Admin Dashboard & Quản lý Hệ thống{% endblock %} 
+{% block page_title %}Quản trị hệ thống{% endblock %} 
+{% block user_name %}Admin{% endblock %} 
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+<link rel="stylesheet" href="{% static 'css/student.css' %}" />
+{% endblock %} 
+
+{% block sidebar_menu %}
+<div class="mt-3 mb-2 px-3 text-uppercase text-muted fw-bold sidebar-header-label" style="font-size: 11px; letter-spacing: 1px">
+  <span class="nav-text">Tổng quan</span>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link active" id="tab-dashboard-btn" onclick="switchTab('dashboard')">
+    <i class="fa-solid fa-border-all"></i> <span class="nav-text">Dashboard</span>
+  </a>
+</div>
+
+<div class="mt-4 mb-2 px-3 text-uppercase text-muted fw-bold sidebar-header-label" style="font-size: 11px; letter-spacing: 1px">
+  <span class="nav-text">Danh mục</span>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-classes-btn" onclick="switchTab('classes')">
+    <i class="fa-solid fa-book-open"></i> <span class="nav-text">Năm học & Lớp</span>
+  </a>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-subjects-btn" onclick="switchTab('subjects')">
+    <i class="fa-solid fa-layer-group"></i> <span class="nav-text">Môn học</span>
+  </a>
+</div>
+
+<div class="mt-4 mb-2 px-3 text-uppercase text-muted fw-bold sidebar-header-label" style="font-size: 11px; letter-spacing: 1px">
+  <span class="nav-text">Người dùng</span>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-teachers-btn" onclick="switchTab('teachers')">
+    <i class="fa-regular fa-user"></i> <span class="nav-text">Giáo viên</span>
+  </a>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-students-btn" onclick="switchTab('students')">
+    <i class="fa-solid fa-graduation-cap"></i> <span class="nav-text">Học sinh</span>
+  </a>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-parents-btn" onclick="switchTab('parents')">
+    <i class="fa-solid fa-users"></i> <span class="nav-text">Phụ huynh</span>
+  </a>
+</div>
+
+<div class="mt-4 mb-2 px-3 text-uppercase text-muted fw-bold sidebar-header-label" style="font-size: 11px; letter-spacing: 1px">
+  <span class="nav-text">Phân công</span>
+</div>
+<div class="nav-item">
+  <a href="#" class="nav-link" id="tab-assignments-btn" onclick="switchTab('assignments')">
+    <i class="fa-solid fa-arrow-right-arrow-left"></i> <span class="nav-text">Chủ nhiệm</span>
+    {% if so_don_cho_duyet > 0 %}
+    <span class="badge bg-danger ms-auto rounded-pill">{{ so_don_cho_duyet }}</span>
+    {% endif %}
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="tab-dashboard" class="tab-content active">
+  <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stats-card">
+      <div style="position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+          <i class="fa-solid fa-user-graduate"></i>
+      </div>
+      <div class="card-value">{{ tong_hoc_sinh }}</div>
+      <div class="card-title">Học sinh</div>
+      <div class="card-subtext"> 3 khối</div>
+    </div>
+    <div class="stats-card">
+      <div style="position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: #fef2f2; color: #ef4444; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+          <i class="fa-solid fa-chalkboard-user"></i>
+      </div>
+      <div class="card-value">{{ tong_giao_vien }}</div>
+      <div class="card-title">Giáo viên</div>
+      <div class="card-subtext">3 khối</div>
+    </div>
+    <div class="stats-card">
+      <div style="position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: #f0fdf4; color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+          <i class="fa-regular fa-calendar-check"></i>
+      </div>
+      <div class="card-value value-green">{{ ty_le_nay }}%</div>
+    <div class="card-title">Chuyên cần hôm nay</div>
+    
+    {% if chenh_lech > 0 %}
+        <div class="card-subtext" style="color: #16a34a; font-weight: 600;">
+            ▲ +{{ chenh_lech_abs }}% so với hôm qua
+        </div>
+    {% elif chenh_lech < 0 %}
+        <div class="card-subtext" style="color: #dc2626; font-weight: 600;">
+            ▼ -{{ chenh_lech_abs }}% so với hôm qua
+        </div>
+    {% else %}
+        <div class="card-subtext" style="color: #64748b; font-weight: 600;">
+            ➖ Đi ngang so với hôm qua
+        </div>
+    {% endif %}
+    </div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title"><i class="fa-solid fa-clock" style="color: var(--sidebar-active)"></i> Chuyên cần theo tuần</span>
+        <span style="font-size: 13px; color: var(--text-muted)">{{ thoi_gian_bieu_do_tt }}</span>
+      </div>
+      <div class="chart-body"><canvas id="lineChart"></canvas></div>
+    </div>
+<div class="chart-container" style="padding: 20px; justify-content: flex-start;">
+        <div class="chart-header" style="justify-content: center; margin-bottom: 15px;">
+            <span class="chart-title" style="justify-content: center;">
+                <i class="fa-solid fa-chart-pie" style="color: #8b5cf6;"></i> Phân bổ vắng toàn trường
+            </span>
+        </div>
+        <div class="legend-box" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 15px; font-size: 13px;">
+            <div><span style="display:inline-block; width:12px; height:12px; background:#10b981; border-radius:3px; margin-right:5px;"></span>Có phép ({{ tong_vang_cp_toan_truong }})</div>
+            <div><span style="display:inline-block; width:12px; height:12px; background:#ef4444; border-radius:3px; margin-right:5px;"></span>Không phép ({{ tong_vang_kp_toan_truong }})</div>
+        </div>
+        <div class="donut-wrap-toantruong" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+            <canvas id="doughnutChartToanTruong"></canvas>
+        </div>
+    </div>
+</div>
+</div>
+<div id="tab-teachers" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h1 class="h4 fw-bold mb-0">Quản lý tài khoản Giáo viên</h1>
+    <div style="display: flex; gap: 8px;">
+      
+      <!-- NÚT MỚI: TẢI FILE MẪU (Đã sửa lỗi cú pháp Django) -->
+      <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='{% url 'xuat_file_mau_gv' %}'">
+        <i class="fa-solid fa-download"></i> Tải file mẫu
+      </button>
+
+      <button class="btn btn-outline-success btn-sm" onclick="openModal('modal-import-gv')">
+        <i class="fa-solid fa-file-excel"></i> Import
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-gv')">
+        <i class="fa-solid fa-plus"></i> Thêm Giáo viên
+      </button>
+    </div>
+  </div>
+  <div class="action-bar">
+    <div class="search-filter-group">
+      <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-gv" class="input-control"
+          placeholder="Tìm kiếm Tài khoản, Tên giáo viên..."
+          onkeyup="locDanhSachGV()" />
+      </div>
+      <select id="filter-gv-trangthai" class="select-control" onchange="locDanhSachGV()">
+        <option value="">Trạng thái</option>
+        <option value="active">Đang hoạt động</option>
+        <option value="inactive">Đã khóa</option>
+      </select>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã GV</th>
+          <th>Họ và Tên Giáo viên</th>
+          <th>Số điện thoại</th>
+          <th>Email</th>
+          <th>Trạng thái TK</th>
+          <th class="text-center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for gv in danh_sach_gv %}
+        <tr class="row-gv"
+          data-ten="{{ gv.ho_ten|lower }}"
+          data-ma="{{ gv.tai_khoan.username|lower }}"
+          data-vaitro="{% if gv.lop_chu_nhiem.exists %}chunhiem{% else %}bomon{% endif %}"
+          data-active="{{ gv.tai_khoan.is_active|yesno:'active,inactive' }}">
+          <td><span class="teacher-id">{{ gv.tai_khoan.username }}</span></td>
+          <td class="person-name">{{ gv.ho_ten }}</td>
+          <td>{{ gv.so_dien_thoai }}</td>
+          <td style="color: var(--text-muted); font-size: 13px">{{ gv.email }}</td>
+          <td>
+            {% if gv.tai_khoan.is_active %}
+              <span class="status-badge bg-success">Đang hoạt động</span>
+            {% else %}
+              <span class="status-badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5;">Đã khóa</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <!-- Nút Sửa thông tin -->
+              <button class="btn-icon btn-edit-gv"
+                data-id="{{ gv.id }}"
+                data-ma="{{ gv.tai_khoan.username }}"
+                data-ten="{{ gv.ho_ten }}"
+                data-sdt="{{ gv.so_dien_thoai }}"
+                data-email="{{ gv.email }}"
+                title="Sửa thông tin">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              <!-- Nút Đổi mật khẩu -->
+              <button class="btn-icon btn-reset-gv"
+                data-id="{{ gv.id }}"
+                data-ten="{{ gv.ho_ten }}"
+                title="Đổi mật khẩu">
+                <i class="fa-solid fa-key"></i>
+              </button>
+              <!-- Nút Khóa/Mở tài khoản -->
+              <button class="btn-icon btn-lock-gv {% if not gv.tai_khoan.is_active %}btn-locked{% endif %}"
+                data-id="{{ gv.tai_khoan.id }}"
+                data-ten="{{ gv.ho_ten }}"
+                data-active="{{ gv.tai_khoan.is_active|yesno:'true,false' }}"
+                title="{% if gv.tai_khoan.is_active %}Khóa tài khoản{% else %}Mở tài khoản{% endif %}">
+                <i class="fa-solid {% if gv.tai_khoan.is_active %}fa-lock{% else %}fa-lock-open{% endif %}"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center" style="padding: 30px">Chưa có giáo viên nào trong hệ thống!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="pagination-gv" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px 4px;">
+      <span id="pagination-gv-info" style="font-size:13px;color:#64748b"></span>
+      <div id="pagination-gv-btns" style="display:flex;gap:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-students" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h1 class="h4 fw-bold mb-0">Quản lý tài khoản Học sinh</h1>
+    <div>
+      <button class="btn btn-outline-primary btn-sm me-2" onclick="window.location.href='{% url 'xuat_file_mau_hs' %}'">
+        <i class="fa-solid fa-download"></i> Tải file mẫu
+      </button>
+      <button class="btn btn-outline-success btn-sm me-2" onclick="openModal('modal-import-hs')"><i class="fa-solid fa-file-excel"></i> Import</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-hs')">
+        <i class="fa-solid fa-plus"></i> Thêm học sinh
+      </button>
+    </div>
+  </div>
+  <div class="action-bar">
+    <div class="search-filter-group">
+      <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-hs" class="input-control"
+          placeholder="Tìm kiếm Username, Tên học sinh..."
+          onkeyup="locDanhSachHS()" />
+      </div>
+      <select id="filter-hs-khoi" class="select-control" onchange="locDanhSachHS()">
+        <option value="">Tất cả Khối</option>
+        <option value="10">Khối 10</option>
+        <option value="11">Khối 11</option>
+        <option value="12">Khối 12</option>
+      </select>
+      <select id="filter-hs-lop" class="select-control" onchange="locDanhSachHS()">
+        <option value="">Tất cả Lớp</option>
+        {% for lop in danh_sach_lop %}
+        <option value="{{ lop.id }}">{{ lop.ten_lop }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Họ và Tên Học sinh</th>
+          <th>Email</th>
+          <th>Lớp</th>
+          <th>PH liên kết (SĐT)</th>
+          <th>Trạng thái</th>
+          <th class="text-center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hs in danh_sach_hs %}
+        <tr class="row-hs"
+          data-ten="{{ hs.ho_ten|lower }}"
+          data-ma="{{ hs.ma_hoc_sinh|lower }}"
+          data-khoi="{{ hs.lop_hoc.khoi|default:'' }}"
+          data-lop="{{ hs.lop_hoc.id|default:'' }}">
+          <td><span class="username-id">{{ hs.ma_hoc_sinh }}</span></td>
+          <td class="person-name">{{ hs.ho_ten }}</td>
+          <td>{{ hs.tai_khoan.email|default:"Chưa có" }}</td>
+          <td class="class-name">{{ hs.lop_hoc.ten_lop }}</td>
+          <td>
+            {% for phhs in hs.phuhuynhhocsinh_set.all %}
+              <div style="font-weight: 500; color: #1e293b;">
+                <i class="fa-solid fa-mobile-screen-button" style="color: var(--sidebar-active);"></i> {{ phhs.phu_huynh.so_dien_thoai }}
+              </div>
+            {% empty %}
+              <span style="color: #ef4444; font-style: italic">Chưa liên kết</span>
+            {% endfor %}
+          </td>
+          <td>
+              {% if hs.tai_khoan.is_active %}
+                <span class="status-badge bg-success">Đang hoạt động</span>
+              {% else %}
+                <span class="status-badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5;">Đã khóa</span>
+              {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <!-- Nút Sửa thông tin -->
+              <button class="btn-icon btn-edit-hs"
+                data-id="{{ hs.id }}"
+                data-ma="{{ hs.ma_hoc_sinh }}"
+                data-ten="{{ hs.ho_ten }}"
+                data-email="{{ hs.tai_khoan.email|default:'' }}"
+                data-lop="{{ hs.lop_hoc.id|default:'' }}"
+
+                data-ngaysinh="{% if hs.ngay_sinh %}{{ hs.ngay_sinh|date:'Y-m-d' }}{% endif %}"
+                data-gioitinh="{% if hs.gioi_tinh %}{{ hs.gioi_tinh }}{% endif %}"
+                data-diachi="{% if hs.dia_chi %}{{ hs.dia_chi }}{% endif %}"
+
+                title="Sửa thông tin">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              <!-- Nút Đổi mật khẩu -->
+              <button class="btn-icon btn-reset-hs"
+                data-id="{{ hs.id }}"
+                data-ten="{{ hs.ho_ten }}"
+                title="Đổi mật khẩu">
+                <i class="fa-solid fa-key"></i>
+              </button>
+              <!-- Nút Khóa/Mở tài khoản -->
+              <button class="btn-icon btn-lock-hs {% if not hs.tai_khoan.is_active %}btn-locked{% endif %}"
+                data-id="{{ hs.tai_khoan.id }}"
+                data-ten="{{ hs.ho_ten }}"
+                data-active="{{ hs.tai_khoan.is_active|yesno:'true,false' }}"
+                title="{% if hs.tai_khoan.is_active %}Khóa tài khoản{% else %}Mở tài khoản{% endif %}">
+                <i class="fa-solid {% if hs.tai_khoan.is_active %}fa-lock{% else %}fa-lock-open{% endif %}"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding: 30px">Chưa có học sinh nào!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="pagination-hs" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px 4px;">
+      <span id="pagination-hs-info" style="font-size:13px;color:#64748b"></span>
+      <div id="pagination-hs-btns" style="display:flex;gap:6px;"></div>
+    </div>
+    </div>
+  </div>
+
+<div id="tab-parents" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h1 class="h4 fw-bold mb-0">Quản lý tài khoản Phụ huynh</h1>
+    <div>
+      <button class="btn btn-outline-primary btn-sm me-2" onclick="window.location.href='{% url 'xuat_file_mau_ph' %}'">
+        <i class="fa-solid fa-download"></i> Tải file mẫu
+      </button>
+      <button class="btn btn-outline-success btn-sm me-2" onclick="openModal('modal-import-ph')"><i class="fa-solid fa-file-excel"></i> Import</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-ph')">
+        <i class="fa-solid fa-plus"></i> Thêm Phụ huynh
+      </button>
+    </div>
+  </div>
+  <div class="action-bar">
+    <div class="search-filter-group">
+    <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-ph" class="input-control"
+          placeholder="Tìm kiếm SĐT, Tên phụ huynh..."
+          onkeyup="locDanhSachPH()" />
+      </div>
+      <select id="filter-ph-trangthai" class="select-control" onchange="locDanhSachPH()">
+        <option value="">Tất cả Trạng thái</option>
+        <option value="active">Đang hoạt động</option>
+        <option value="inactive">Đã khóa</option>
+      </select>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Tài khoản (Số ĐT)</th>
+          <th>Họ và Tên Phụ huynh</th>
+          <th>Học sinh liên kết</th>
+          <th>Trạng thái App</th>
+          <th class="text-center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ph in danh_sach_ph %}
+        <tr class="row-ph"
+          data-ten="{{ ph.ho_ten|lower }}"
+          data-sdt="{{ ph.so_dien_thoai }}"
+          data-active="{{ ph.tai_khoan.is_active|yesno:'active,inactive' }}">
+          <td>
+            <span class="username-id"><i class="fa-solid fa-mobile-screen-button"></i> {{ ph.so_dien_thoai }}</span>
+          </td>
+          <td class="person-name">{{ ph.ho_ten }}</td>
+          <td>
+            {% for phhs in ph.phuhuynhhocsinh_set.all %}
+            <div class="student-chip">
+              <i class="fa-solid fa-user-graduate" style="color: var(--sidebar-active)"></i>
+              {{ phhs.hoc_sinh.ho_ten }}
+              <span>({{ phhs.hoc_sinh.lop_hoc.ten_lop|default:"Chưa xếp lớp" }})</span>
+            </div>
+            {% empty %}
+            <span style="color: #ef4444; font-style: italic">Chưa liên kết</span>
+            {% endfor %}
+          </td>
+<td>
+              {% if ph.tai_khoan.is_active %}
+                <span class="status-badge bg-success">Đang hoạt động</span>
+              {% else %}
+                <span class="status-badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5;">Đã khóa</span>
+              {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn-icon btn-edit-ph"
+                data-id="{{ ph.id }}"
+                data-sdt="{{ ph.so_dien_thoai }}"
+                data-ten="{{ ph.ho_ten }}"
+                title="Sửa thông tin">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-reset-ph"
+                data-id="{{ ph.id }}"
+                data-ten="{{ ph.ho_ten }}"
+                title="Đổi mật khẩu">
+                <i class="fa-solid fa-key"></i>
+              </button>
+              <button class="btn-icon btn-lock-ph {% if not ph.tai_khoan.is_active %}btn-locked{% endif %}"
+                data-id="{{ ph.tai_khoan.id }}"
+                data-ten="{{ ph.ho_ten }}"
+                data-active="{{ ph.tai_khoan.is_active|yesno:'true,false' }}"
+                title="{% if ph.tai_khoan.is_active %}Khóa tài khoản{% else %}Mở tài khoản{% endif %}">
+                <i class="fa-solid {% if ph.tai_khoan.is_active %}fa-lock{% else %}fa-lock-open{% endif %}"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 30px">Chưa có phụ huynh nào!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="pagination-ph" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px 4px;">
+      <span id="pagination-ph-info" style="font-size:13px;color:#64748b"></span>
+      <div id="pagination-ph-btns" style="display:flex;gap:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-classes" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+  <h1 class="h4 fw-bold mb-0">Quản lý Năm học & Lớp học</h1>
+  <button class="btn btn-primary btn-sm" onclick="openModal('modal-tohop')">
+    <i class="fa-solid fa-plus"></i> Tạo Tổ Hợp Môn
+  </button>
+</div>
+
+  <div class="table-card" style="margin-bottom: 24px">
+    <div class="action-bar" style="margin-bottom: 16px">
+      <h2 style="font-size: 16px; color: #1e293b">
+        <i class="fa-regular fa-calendar-check" style="color: var(--sidebar-active); margin-right: 8px"></i>
+        Thiết lập Năm học & Học kỳ
+      </h2>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-hocky')">+ Thêm Học kỳ</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Năm học</th>
+          <th>Học kỳ</th>
+          <th>Ngày bắt đầu</th>
+          <th>Ngày kết thúc</th>
+          <th style="text-align: center">Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hk in danh_sach_hocky %}
+        <tr>
+          <td style="font-weight: 700">{{ hk.ten_nam_hoc }}</td>
+          <td style="font-weight: 600">{{ hk.ky_hoc }}</td>
+          <td>{{ hk.ngay_bat_dau|date:"d/m/Y" }}</td>
+          <td>{{ hk.ngay_ket_thuc|date:"d/m/Y" }}</td>
+          <td style="text-align: center">
+            {% if hk.trang_thai == 'Dang_Hoc' %}
+            <span class="status-badge bg-success" style="border: 1px solid #34d399">Đang học</span>
+            {% else %}
+            <span class="status-badge bg-warning">Đã kết thúc</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions" style="justify-content: center;">
+              <button class="btn-icon btn-edit-hocky"
+                data-id="{{ hk.id }}"
+                data-nam="{{ hk.ten_nam_hoc }}"
+                data-ky="{{ hk.ky_hoc }}"
+                data-bd="{{ hk.ngay_bat_dau|date:'Y-m-d' }}"
+                data-kt="{{ hk.ngay_ket_thuc|date:'Y-m-d' }}"
+                data-trangthai="{{ hk.trang_thai }}">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              
+              <button class="btn-icon btn-delete-hocky"
+                data-id="{{ hk.id }}"
+                data-ten="{{ hk.ky_hoc }} ({{ hk.ten_nam_hoc }})"
+                title="Xóa học kỳ">
+                <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center" style="padding: 30px">Chưa thiết lập năm học nào!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+        <!-- Phân trang Học kỳ -->
+        <div id="pagination-hocky" style="display:flex; align-items:center; justify-content:space-between; padding: 14px 4px 4px 4px;">
+          <span id="pagination-hocky-info" style="font-size:13px; color:#64748b"></span>
+          <div id="pagination-hocky-btns" style="display:flex; gap:6px;"></div>
+        </div>
+  </div>
+
+  <div class="table-card">
+    <div class="action-bar">
+      <h2 style="font-size: 16px; color: #1e293b">
+        <i class="fa-solid fa-chalkboard" style="color: var(--sidebar-active); margin-right: 8px"></i>
+        Quản lý Khối & Lớp học
+      </h2>
+      <div class="header-actions">
+        <button class="btn btn-outline-success btn-sm me-2" onclick="openModal('modal-import-lop')">
+          <i class="fa-solid fa-file-excel"></i> Import Lớp
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-lop')">+ Tạo Lớp mới</button>
+      </div>
+    </div>
+    <div class="action-bar" style="margin-top: 10px">
+      <div class="search-filter-group">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-lop" class="input-control" placeholder="Tìm kiếm tên lớp..." onkeyup="locDanhSachLop()" />
+        </div>
+        <select id="filter-khoi" class="select-control" onchange="locDanhSachLop()">
+          <option value="">Lọc theo Khối</option>
+          <option value="10">Khối 10</option>
+          <option value="11">Khối 11</option>
+          <option value="12">Khối 12</option>
+        </select>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Khối</th>
+          <th>Mã Lớp</th>
+          <th>Năm học</th>
+          <th>GV Chủ nhiệm</th>
+          <th style="text-align: center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lop in danh_sach_lop %}
+        <tr class="row-lop" data-khoi="{{ lop.khoi }}" data-ten="{{ lop.ten_lop|lower }}">
+          <td>
+            <span class="status-badge" style="background: #e0e7ff; color: #1e40af">Khối {{ lop.khoi }}</span>
+          </td>
+          <td class="class-name" style="font-size: 16px">{{ lop.ten_lop }}</td>
+          <td style="font-weight: 500">{{ lop.nam_hoc }}</td>
+          <td>
+            {% if lop.giao_vien_cn %} Thầy/Cô {{ lop.giao_vien_cn.ho_ten }} 
+            {% else %}
+            <span style="color: #ef4444; font-style: italic">Chưa phân công</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions" style="justify-content: center">
+              <button class="btn-icon" title="Xem danh sách" onclick="xemDanhSachHS('{{ lop.id }}', '{{ lop.ten_lop }}')">
+                <i class="fa-solid fa-users-viewfinder"></i>
+              </button>
+
+              <table style="display: none;">
+                <tbody id="data-hs-lop-{{ lop.id }}">
+                  {% for hs in danh_sach_hs %}
+                    {% if hs.lop_hoc.id == lop.id %}
+                    <tr>
+                      <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155;">{{ hs.ma_hoc_sinh }}</td>
+                      <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 500;">{{ hs.ho_ten }}</td>
+                      <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 13px;">{{ hs.tai_khoan.email|default:"Chưa cập nhật" }}</td>
+                    </tr>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+              <button class="btn-icon btn-edit-lop"
+                data-id="{{ lop.id }}"
+                data-ten="{{ lop.ten_lop }}"
+                data-khoi="{{ lop.khoi }}"
+                data-nam="{{ lop.nam_hoc }}"
+                data-gvcn="{% if lop.giao_vien_cn %}{{ lop.giao_vien_cn.id }}{% endif %}"
+                data-tohop="{% if lop.to_hop %}{{ lop.to_hop.id }}{% endif %}">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 30px; color: #64748b">Chưa có lớp học nào trong hệ thống!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-subjects" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h1 class="h4 fw-bold mb-0">Quản lý Môn học (Chương trình THPT)</h1>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-monhoc')">
+        <i class="fa-solid fa-plus"></i> Thêm Môn học
+    </button>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã Môn</th>
+          <th>Tên Môn Học</th>
+          <th>Phân loại</th>
+          <th class="text-center">Số Tiết/Kỳ</th>
+          <th class="text-center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mh in danh_sach_monhoc %}
+        <tr>
+          <td style="font-weight: 600; color: #475569;">{{ mh.ma_mon_hoc }}</td>
+          <td style="font-weight: 500;">{{ mh.ten_mon_hoc }}</td>
+          <td>
+              {% if mh.loai_mon == 'Bắt buộc' %}
+                <span class="status-badge bg-warning" style="color: #92400e; background: #fef3c7;">Bắt buộc</span>
+              {% else %}
+                <span class="status-badge bg-success" style="color: #166534; background: #dcfce3;">Lựa chọn</span>
+              {% endif %}
+          </td>
+          <td class="text-center">{{ mh.so_tiet_ky }} tiết</td>
+          <td>
+            <div class="table-actions" style="justify-content: center;">
+              <button class="btn-icon btn-edit-monhoc"
+                data-id="{{ mh.id }}"
+                data-ma="{{ mh.ma_mon_hoc }}"
+                data-ten="{{ mh.ten_mon_hoc }}"
+                data-loai="{{ mh.loai_mon }}"
+                data-nhom="{{ mh.nhom_mon }}" 
+                data-sotiet="{{ mh.so_tiet_ky }}">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-delete-monhoc"
+                data-id="{{ mh.id }}"
+                data-ten="{{ mh.ten_mon_hoc }}"
+                title="Xóa môn học">
+                <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center" style="padding: 30px; color: #64748b;">Chưa có môn học nào!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-assignments" class="tab-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h1 class="h4 fw-bold mb-0">Phân công Giáo viên Chủ nhiệm</h1>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-phancong')">
+        <i class="fa-solid fa-user-plus"></i> Phân công / Đổi GVCN
+    </button>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Khối</th>
+          <th>Lớp</th>
+          <th>Năm học</th>
+          <th>Giáo viên Chủ nhiệm hiện tại</th>
+          <th class="text-center">Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lop in danh_sach_lop %}
+        <tr>
+          <td><span class="status-badge" style="background: #e0e7ff; color: #1e40af">Khối {{ lop.khoi }}</span></td>
+          <td style="font-weight: 600; font-size: 15px;">{{ lop.ten_lop }}</td>
+          <td>{{ lop.nam_hoc }}</td>
+          <td>
+            {% if lop.giao_vien_cn %}
+                <span style="font-weight: 500; color: #0f172a;">
+                    <i class="fa-solid fa-chalkboard-user" style="color: var(--sidebar-active);"></i> Thầy/Cô {{ lop.giao_vien_cn.ho_ten }}
+                </span>
+            {% else %}
+                <span style="color: #ef4444; font-style: italic;">Chưa phân công</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if lop.giao_vien_cn %}
+                <span class="status-badge bg-success">Đã phân công</span>
+            {% else %}
+                <span class="status-badge bg-warning">Đang trống</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center" style="padding: 30px;">Chưa có lớp học nào trong hệ thống!</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="pagination-cn" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px 4px;">
+      <span id="pagination-cn-info" style="font-size:13px;color:#64748b"></span>
+      <div id="pagination-cn-btns" style="display:flex;gap:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+  
+  <div id="modal-gv" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2 id="modal-gv-title">➕ Thêm Giáo viên mới</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form id="form-them-gv">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mã GV (Username) <span class="req">*</span></label><input type="text" name="gv_ma" required />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên <span class="req">*</span></label><input type="text" name="gv_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Số điện thoại <span class="req">*</span></label><input type="tel" name="gv_sdt" required />
+          </div>
+          <div class="modal-field">
+            <label>Email <span class="req">*</span></label><input type="email" name="gv_email" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Mật khẩu tạm <span class="req">*</span></label>
+            <input type="password" name="gv_mk" required style="width: 100%;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Lưu Giáo viên</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-monhoc" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>➕ Thêm Môn học mới</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'them_mon_hoc' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mã môn học <span class="req">*</span></label>
+            <input type="text" name="mh_ma" placeholder="VD: TOAN, VATLY" required />
+          </div>
+          <div class="modal-field">
+            <label>Tên môn học <span class="req">*</span></label>
+            <input type="text" name="mh_ten" placeholder="VD: Toán học" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Phân loại môn <span class="req">*</span></label>
+            <select name="mh_loai" required>
+                <option value="Bắt buộc">Môn Bắt buộc</option>
+                <option value="Lựa chọn">Môn Lựa chọn</option>
+                <option value="Chuyên đề">Chuyên đề học tập</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Nhóm môn học <span class="req">*</span></label>
+            <select name="mh_nhom" required>
+                <option value="Chung">Môn Chung (Cả 2 ban)</option>
+                <option value="TuNhien">Tổ hợp Tự nhiên</option>
+                <option value="XaHoi">Tổ hợp Xã hội</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Số tiết / Học kỳ <span class="req">*</span></label>
+            <input type="number" name="mh_sotiet" value="52" required style="width: 100%;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Lưu Môn học</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-edit-monhoc" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa Môn học</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_mon_hoc' %}">
+      {% csrf_token %}
+      <input type="hidden" name="mh_id" id="edit_mh_id">
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mã môn học <span class="req">*</span></label>
+            <input type="text" name="mh_ma" id="edit_mh_ma" required />
+          </div>
+          <div class="modal-field">
+            <label>Tên môn học <span class="req">*</span></label>
+            <input type="text" name="mh_ten" id="edit_mh_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Phân loại môn <span class="req">*</span></label>
+            <select name="mh_loai" id="edit_mh_loai" required>
+              <option value="Bắt buộc">Môn Bắt buộc</option>
+              <option value="Lựa chọn">Môn Lựa chọn</option>
+              <option value="Chuyên đề">Chuyên đề học tập</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Nhóm môn học <span class="req">*</span></label>
+            <select name="mh_nhom" id="edit_mh_nhom" required>
+                <option value="Chung">Môn Chung (Cả 2 ban)</option>
+                <option value="TuNhien">Tổ hợp Tự nhiên</option>
+                <option value="XaHoi">Tổ hợp Xã hội</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Số tiết / Học kỳ <span class="req">*</span></label>
+            <input type="number" name="mh_sotiet" id="edit_mh_sotiet" required style="width: 100%;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Cập nhật Môn học</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-danhsach-hs" class="modal-box" style="display: none; max-width: 600px; width: 90%;">
+    <div class="modal-header">
+      <h2 id="modal-danhsach-title">🎓 Danh sách học sinh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" style="max-height: 400px; overflow-y: auto; padding: 0;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead style="background-color: #f8fafc; position: sticky; top: 0;">
+          <tr>
+            <th style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; color: #475569;">Mã HS</th>
+            <th style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; color: #475569;">Họ và Tên</th>
+            <th style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; color: #475569;">Email</th>
+          </tr>
+        </thead>
+        <tbody id="modal-danhsach-tbody">
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Đóng</button>
+    </div>
+  </div>
+
+  <div id="modal-hs" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2 id="modal-hs-title">➕ Tạo tài khoản Học sinh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form id="form-them-hs">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Username (Mã HS) <span class="req">*</span></label><input type="text" name="hs_user" required />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên <span class="req">*</span></label><input type="text" name="hs_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Email học sinh</label><input type="email" name="hs_email" />
+          </div>
+          <div class="modal-field">
+            <label>Chọn Lớp <span class="req">*</span></label>
+            <select name="hs_lop" required>
+              <option value="">-- Chọn Lớp --</option>
+              {% for lop in danh_sach_lop %}
+              <option value="{{ lop.id }}">{{ lop.ten_lop }} (Khối {{ lop.khoi }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>SĐT Phụ huynh liên kết</label><input type="tel" name="hs_sdtph" placeholder="Nhập sau cũng được" />
+          </div>
+          <div class="modal-field">
+            <label>Mật khẩu tạm <span class="req">*</span></label><input type="password" name="hs_mk" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Ngày sinh</label>
+            <input type="date" name="hs_ngaysinh" />
+          </div>
+          <div class="modal-field">
+            <label>Giới tính</label>
+            <select name="hs_gioitinh">
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Địa chỉ</label>
+            <input type="text" name="hs_diachi" placeholder="Nhập địa chỉ, quê quán..." style="width: 100%;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Tạo tài khoản</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-ph" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2 id="modal-ph-title">➕ Thêm Phụ huynh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form id="form-them-ph">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Số điện thoại (Tài khoản) <span class="req">*</span></label>
+            <input type="tel" name="ph_sdt" required />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên phụ huynh <span class="req">*</span></label>
+            <input type="text" name="ph_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="flex: 1; min-width: 0;">
+            <label>Học sinh liên kết</label>
+            <select name="ph_hs" style="width: 100%; text-overflow: ellipsis; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Chọn Học sinh --</option>
+              {% for hs in danh_sach_hs %}
+                  {% if hs.phuhuynhhocsinh_set.all %}
+                      <option value="{{ hs.id }}" style="color: #16a34a; background-color: #dcfce3; font-weight: 500;">
+                        ✅ [Đã có PH] - {{ hs.ma_hoc_sinh }} - {{ hs.ho_ten }} (Lớp {{ hs.lop_hoc.ten_lop|default:"Chưa có" }})
+                      </option>
+                  {% else %}
+                      <option value="{{ hs.id }}" style="color: #0f172a;">
+                        [Chưa có] - {{ hs.ma_hoc_sinh }} - {{ hs.ho_ten }} (Lớp {{ hs.lop_hoc.ten_lop|default:"Chưa có" }})
+                      </option>
+                  {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-field" style="flex: 1; min-width: 0;">
+            <label>Mật khẩu App <span class="req">*</span></label>
+            <input type="password" name="ph_mk" required style="width: 100%;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Lưu Phụ huynh</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-hocky" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>➕ Thêm Học kỳ mới</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'them_hoc_ky' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Năm học <span class="req">*</span></label><input type="text" name="hk_nam" placeholder="VD: 2024 - 2025" required />
+          </div>
+          <div class="modal-field">
+            <label>Học kỳ <span class="req">*</span></label>
+            <select name="hk_ky" required>
+              <option value="Học kỳ 1">Học kỳ 1</option>
+              <option value="Học kỳ 2">Học kỳ 2</option>
+              <option value="Học kỳ Hè">Học kỳ Hè</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Ngày bắt đầu <span class="req">*</span></label><input type="date" name="hk_bd" required />
+          </div>
+          <div class="modal-field">
+            <label>Ngày kết thúc <span class="req">*</span></label><input type="date" name="hk_kt" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Lưu Học kỳ</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-edit-hocky" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa Học kỳ</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_hoc_ky' %}">
+      {% csrf_token %}
+      <input type="hidden" name="hk_id" id="edit_hk_id">
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Năm học</label>
+            <input type="text" name="hk_nam" id="edit_hk_nam" required />
+          </div>
+          <div class="modal-field">
+            <label>Học kỳ</label>
+            <select name="hk_ky" id="edit_hk_ky">
+              <option value="Học kỳ 1">Học kỳ 1</option>
+              <option value="Học kỳ 2">Học kỳ 2</option>
+              <option value="Học kỳ Hè">Học kỳ Hè</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Ngày bắt đầu</label>
+            <input type="date" name="hk_bd" id="edit_hk_bd" required />
+          </div>
+          <div class="modal-field">
+            <label>Ngày kết thúc</label>
+            <input type="date" name="hk_kt" id="edit_hk_kt" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Trạng thái</label>
+            <select name="hk_trangthai" id="edit_hk_trangthai">
+              <option value="Dang_Hoc">Đang học</option>
+              <option value="Da_Ket_Thuc">Đã kết thúc</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Cập nhật Học kỳ</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-import-lop" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Nhập danh sách Lớp từ Excel</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'import_lop_hoc' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #166534;">
+          <strong>Lưu ý định dạng File:</strong> File Excel phải có Dòng 1 là Tiêu đề gồm đúng 3 cột:<br>
+          <b>Tên lớp</b> | <b>Khối</b> | <b>Năm học</b>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label style="margin-bottom: 8px; font-weight: 500; color: #1e293b;">
+              <i class="fa-solid fa-paperclip" style="color: #64748b; margin-right: 5px;"></i> Chọn file Excel (Đuôi .xlsx hoặc .xls) <span class="req">*</span>
+            </label>
+            <input type="file" name="file_excel" accept=".xlsx, .xls" required class="form-control" style="cursor: pointer; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-upload"></i> Bắt đầu Import</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-edit-lop" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa Lớp học</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_lop_hoc' %}">
+      {% csrf_token %}
+      <input type="hidden" name="lop_id" id="edit_lop_id">
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Tên lớp</label>
+            <input type="text" name="lop_ten" id="edit_lop_ten" required />
+          </div>
+          <div class="modal-field">
+            <label>Khối</label>
+            <select name="lop_khoi" id="edit_lop_khoi">
+              <option value="10">Khối 10</option>
+              <option value="11">Khối 11</option>
+              <option value="12">Khối 12</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Năm học <span class="req">*</span></label>
+            <select name="lop_nam" id="edit_lop_nam" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Chọn Năm học --</option>
+              {% for hk in danh_sach_hocky %}
+                {% ifchanged hk.ten_nam_hoc %}
+                  <option value="{{ hk.ten_nam_hoc }}">{{ hk.ten_nam_hoc }}</option>
+                {% endifchanged %}
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="modal-field" style="width: 100%;">
+            <label>Tổ hợp môn</label>
+            <select name="lop_tohop" id="edit_lop_tohop" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Chưa phân ban --</option>
+              {% for th in danh_sach_tohop %}
+                <option value="{{ th.id }}">{{ th.ten_to_hop }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+                <button type="submit" class="btn btn-primary btn-sm">Cập nhật Lớp</button>
+              </div>
+            </form>
+          </div>
+
+<div id="modal-lop" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2 id="modal-lop-title">➕ Tạo Lớp mới</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'them_lop_hoc' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Tên lớp <span class="req">*</span></label>
+            <input type="text" name="lop_ten" placeholder="VD: 10A1" required />
+          </div>
+          <div class="modal-field">
+            <label>Khối <span class="req">*</span></label>
+            <select name="lop_khoi">
+              <option value="10">Khối 10</option>
+              <option value="11">Khối 11</option>
+              <option value="12">Khối 12</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Năm học <span class="req">*</span></label>
+            <select name="lop_nam" required style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Chọn Năm học --</option>
+              {% for hk in danh_sach_hocky %}
+                {% ifchanged hk.ten_nam_hoc %}
+                  <option value="{{ hk.ten_nam_hoc }}">{{ hk.ten_nam_hoc }}</option>
+                {% endifchanged %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Tổ hợp môn</label>
+            <select name="lop_tohop" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Chưa phân ban --</option>
+              {% for th in danh_sach_tohop %}
+                <option value="{{ th.id }}">{{ th.ten_to_hop }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Tạo lớp</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-tohop" class="modal-box" style="display: none; max-width: 720px; width: 95%;">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-layer-group" style="color: var(--primary);"></i> Tạo Tổ Hợp Môn Mới</h2>
+      <button type="button" class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'them_to_hop' %}">
+      {% csrf_token %}
+      <div class="modal-body" style="padding: 20px 24px;">
+        
+        <div class="modal-row" style="margin-bottom: 20px;">
+          <div class="modal-field" style="width: 100%;">
+            <label style="font-weight: 600; color: #1e293b; font-size: 14px;">Tên Tổ Hợp <span class="req">*</span></label>
+            <input type="text" name="th_ten" placeholder="VD: Tổ hợp Tự Nhiên 1 (Lý, Hóa, Tin)" required style="padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 14px;" />
+          </div>
+        </div>
+        
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13.5px; line-height: 1.5;">
+               <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i>
+               <strong>Lưu ý:</strong> Bảng dưới chỉ hiển thị các môn đặc thù. Các "Môn Chung" (Toán, Văn, Anh...) đã được hệ thống tự động gán ngầm cho mọi Tổ hợp. Thầy/cô không cần phải tick chọn lại!
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+              
+              <div style="border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="background: #eff6ff; padding: 12px 16px; border-bottom: 1px solid #bfdbfe; font-weight: 700; color: #1d4ed8; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                  <i class="fa-solid fa-flask"></i> Nhóm Tự Nhiên
+                </div>
+                <div style="padding: 16px; max-height: 220px; overflow-y: auto; background: #f8fafc;">
+                  {% for mon in danh_sach_monhoc %}
+                    {% if mon.nhom_mon == 'TuNhien' %}
+                      <label style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 14px; color: #334155;">
+                        <input type="checkbox" name="th_monhoc" value="{{ mon.id }}" style="width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer;">
+                        <span style="font-weight: 500;">{{ mon.ten_mon_hoc }}</span>
+                      </label>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div style="border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="background: #fffbeb; padding: 12px 16px; border-bottom: 1px solid #fde68a; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                  <i class="fa-solid fa-globe"></i> Nhóm Xã Hội
+                </div>
+                <div style="padding: 16px; max-height: 220px; overflow-y: auto; background: #f8fafc;">
+                  {% for mon in danh_sach_monhoc %}
+                    {% if mon.nhom_mon == 'XaHoi' %}
+                      <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 14px; color: #334155;">
+                        <input type="checkbox" name="th_monhoc" value="{{ mon.id }}" style="width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #f59e0b; cursor: pointer;">
+                        <span style="font-weight: 500;">{{ mon.ten_mon_hoc }}</span>
+                      </label>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <button type="button" class="btn btn-outline-secondary" onclick="closeModal()" style="padding: 8px 20px; border-radius: 6px;">Hủy</button>
+        <button type="submit" class="btn btn-primary" style="padding: 8px 20px; border-radius: 6px; font-weight: 600;"><i class="fa-solid fa-floppy-disk"></i> Lưu Tổ Hợp</button>
+      </div>
+    </form>
+  </div>
+  
+  <div id="modal-phancong" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-user-plus"></i> Phân công GV Chủ nhiệm</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'phan_cong_chu_nhiem' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
+          *Lưu ý: Nếu lớp đã có GVCN, thao tác này sẽ ghi đè đổi sang Giáo viên mới.
+        </p>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Chọn Lớp <span class="req">*</span></label>
+            <select name="pc_lop" required>
+                <option value="">-- Chọn lớp cần phân công --</option>
+                {% for lop in danh_sach_lop %}
+                    {% if lop.giao_vien_cn %}
+                        <option value="{{ lop.id }}" style="color: #b45309; background-color: #fef3c7;">
+                            ⚠️ Lớp {{ lop.ten_lop }} (Khối {{ lop.khoi }}) - Đã có Thầy/Cô {{ lop.giao_vien_cn.ho_ten }}
+                        </option>
+                    {% else %}
+                        <option value="{{ lop.id }}" style="color: #0f172a; font-weight: 500;">
+                            ✅ Lớp {{ lop.ten_lop }} (Khối {{ lop.khoi }}) - Chưa có chủ nhiệm
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Chọn Giáo viên làm Chủ nhiệm <span class="req">*</span></label>
+            <select name="pc_gv" required>
+                <option value="">-- Chọn Giáo viên --</option>
+                {% for gv in danh_sach_gv %}
+                    {% if gv.lop_chu_nhiem.exists %}
+                        <option value="{{ gv.id }}" disabled style="color: #94a3b8; background-color: #f8fafc;">
+                            🔒 Thầy/Cô {{ gv.ho_ten }} (Đang CN lớp {% for l in gv.lop_chu_nhiem.all %}{{ l.ten_lop }}{% endfor %})
+                        </option>
+                    {% else %}
+                        <option value="{{ gv.id }}" style="color: #0f172a; font-weight: 500;">
+                            ✅ Thầy/Cô {{ gv.ho_ten }} (Username: {{ gv.tai_khoan.username }})
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Lưu Phân công</button>
+      </div>
+    </form>
+  </div>
+<!-- Modal Sửa Giáo viên -->
+  <div id="modal-edit-gv" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa thông tin Giáo viên</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_giao_vien' %}">
+      {% csrf_token %}
+      <input type="hidden" name="gv_id" id="edit_gv_id">
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mã GV</label>
+            <input type="text" id="edit_gv_ma" disabled
+              style="background:#f1f5f9; color:#94a3b8; cursor:not-allowed" />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên <span class="req">*</span></label>
+            <input type="text" name="gv_ten" id="edit_gv_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Số điện thoại</label>
+            <input type="tel" name="gv_sdt" id="edit_gv_sdt" />
+          </div>
+          <div class="modal-field">
+            <label>Email</label>
+            <input type="email" name="gv_email" id="edit_gv_email" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal Đổi mật khẩu Giáo viên -->
+  <div id="modal-reset-gv" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>🔑 Đổi mật khẩu Giáo viên</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form id="form-reset-gv" class="ajax-loader-form" method="POST" action="{% url 'reset_mk_giao_vien' %}">
+      {% csrf_token %}
+      <input type="hidden" name="gv_id" id="reset_gv_id">
+      <div class="modal-body">
+        <p style="font-size:13px; color:#64748b; margin-bottom:12px">
+          Đang đổi mật khẩu cho: <strong id="reset_gv_ten"></strong>
+        </p>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mật khẩu mới <span class="req">*</span></label>
+            <input type="password" name="gv_mk_moi" required />
+          </div>
+          <div class="modal-field">
+            <label>Xác nhận mật khẩu <span class="req">*</span></label>
+            <input type="password" name="gv_mk_xacnhan" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-warning btn-sm">Đổi mật khẩu</button>
+      </div>
+    </form>
+  </div>  
+<!-- Modal Sửa Học sinh -->
+  <div id="modal-edit-hs" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa thông tin Học sinh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_hoc_sinh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="hs_id" id="edit_hs_id">
+      <div class="modal-body">
+        
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mã Học sinh</label>
+            <input type="text" id="edit_hs_ma" disabled style="background:#f1f5f9; color:#94a3b8; cursor:not-allowed" />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên <span class="req">*</span></label>
+            <input type="text" name="hs_ten" id="edit_hs_ten" required />
+          </div>
+        </div>
+        
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Email</label>
+            <input type="email" name="hs_email" id="edit_hs_email" />
+          </div>
+          <div class="modal-field">
+            <label>Chuyển Lớp</label>
+            <select name="hs_lop" id="edit_hs_lop">
+              <option value="">-- Giữ nguyên lớp cũ --</option>
+              {% for lop in danh_sach_lop %}
+              <option value="{{ lop.id }}">{{ lop.ten_lop }} (Khối {{ lop.khoi }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Ngày sinh</label>
+            <input type="date" name="hs_ngaysinh" id="edit_hs_ngaysinh" />
+          </div>
+          <div class="modal-field">
+            <label>Giới tính</label>
+            <select name="hs_gioitinh" id="edit_hs_gioitinh">
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label>Địa chỉ / Quê quán</label>
+            <input type="text" name="hs_diachi" id="edit_hs_diachi" placeholder="Nhập địa chỉ, quê quán..." style="width: 100%;" />
+          </div>
+        </div>
+
+      </div> <!-- Kết thúc thẻ div.modal-body -->
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal Đổi mật khẩu Học sinh -->
+  <div id="modal-reset-hs" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>🔑 Đổi mật khẩu Học sinh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'reset_mk_hoc_sinh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="hs_id" id="reset_hs_id">
+      <div class="modal-body">
+        <p style="font-size:13px; color:#64748b; margin-bottom:12px">
+          Đang đổi mật khẩu cho: <strong id="reset_hs_ten"></strong>
+        </p>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mật khẩu mới <span class="req">*</span></label>
+            <input type="password" name="hs_mk_moi" required />
+          </div>
+          <div class="modal-field">
+            <label>Xác nhận mật khẩu <span class="req">*</span></label>
+            <input type="password" name="hs_mk_xacnhan" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-warning btn-sm">Đổi mật khẩu</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-delete-monhoc" class="modal-box" style="display: none; max-width: 420px">
+    <div class="modal-header">
+      <h2 id="delete_mh_title">🗑️ Xác nhận xóa Môn học</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'xoa_mon_hoc' %}">
+      {% csrf_token %}
+      <input type="hidden" name="mh_id" id="delete_mh_id">
+      <div class="modal-body">
+        <p id="delete_mh_msg" style="font-size:14px; color:#1e293b; text-align:center; padding: 10px 0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-danger btn-sm">Xác nhận Xóa</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-delete-hocky" class="modal-box" style="display: none; max-width: 420px">
+    <div class="modal-header">
+      <h2 id="delete_hk_title">🗑️ Xác nhận xóa Học kỳ</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'xoa_hoc_ky' %}">
+      {% csrf_token %}
+      <input type="hidden" name="hk_id" id="delete_hk_id">
+      <div class="modal-body">
+        <p id="delete_hk_msg" style="font-size:14px; color:#1e293b; text-align:center; padding: 10px 0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-danger btn-sm">Xác nhận Xóa</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal Xác nhận Khóa/Mở tài khoản Học sinh -->
+  <div id="modal-lock-hs" class="modal-box" style="display: none; max-width: 420px">
+    <div class="modal-header">
+      <h2 id="lock_hs_title">🔒 Xác nhận khóa tài khoản</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'khoa_hoc_sinh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="tk_id" id="lock_hs_tk_id">
+      <input type="hidden" name="action" id="lock_hs_action">
+      <div class="modal-body">
+        <p id="lock_hs_msg" style="font-size:14px; color:#1e293b; text-align:center; padding: 10px 0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" id="lock_hs_btn" class="btn btn-danger btn-sm">Xác nhận Khóa</button>
+      </div>
+    </form>
+  </div>
+
+<!-- Modal Sửa Phụ huynh -->
+  <div id="modal-edit-ph" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>📝 Sửa thông tin Phụ huynh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'sua_phu_huynh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ph_id" id="edit_ph_id">
+      <div class="modal-body">
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Số điện thoại (Tài khoản)</label>
+            <input type="text" id="edit_ph_sdt" disabled
+              style="background:#f1f5f9; color:#94a3b8; cursor:not-allowed" />
+          </div>
+          <div class="modal-field">
+            <label>Họ và tên <span class="req">*</span></label>
+            <input type="text" name="ph_ten" id="edit_ph_ten" required />
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Liên kết Học sinh</label>
+            <select name="ph_hs" id="edit_ph_hs" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="">-- Giữ nguyên --</option>
+              {% for hs in danh_sach_hs %}
+                  {% if hs.phuhuynhhocsinh_set.all %}
+                      <option value="{{ hs.id }}" style="color: #16a34a; background-color: #dcfce3; font-weight: 500;">
+                        ✅ [Đã có PH] - {{ hs.ma_hoc_sinh }} - {{ hs.ho_ten }} (Lớp {{ hs.lop_hoc.ten_lop|default:"Chưa có" }})
+                      </option>
+                  {% else %}
+                      <option value="{{ hs.id }}" style="color: #0f172a;">
+                        [Chưa có] - {{ hs.ma_hoc_sinh }} - {{ hs.ho_ten }} (Lớp {{ hs.lop_hoc.ten_lop|default:"Chưa có" }})
+                      </option>
+                  {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+      </div>
+    </form>
+  </div>
+<div id="modal-reset-ph" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2>🔑 Đổi mật khẩu Phụ huynh</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'reset_mk_phu_huynh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ph_id" id="reset_ph_id">
+      <div class="modal-body">
+        <p style="font-size:13px; color:#64748b; margin-bottom:12px">
+          Đang đổi mật khẩu cho phụ huynh: <strong id="reset_ph_ten"></strong>
+        </p>
+        <div class="modal-row">
+          <div class="modal-field">
+            <label>Mật khẩu mới <span class="req">*</span></label>
+            <input type="password" name="ph_mk_moi" required />
+          </div>
+          <div class="modal-field">
+            <label>Xác nhận mật khẩu <span class="req">*</span></label>
+            <input type="password" name="ph_mk_xacnhan" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-warning btn-sm">Đổi mật khẩu</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-lock-ph" class="modal-box" style="display: none; max-width: 420px">
+    <div class="modal-header">
+      <h2 id="lock_ph_title">🔒 Xác nhận khóa tài khoản</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'khoa_phu_huynh' %}">
+      {% csrf_token %}
+      <input type="hidden" name="tk_id" id="lock_ph_tk_id">
+      <input type="hidden" name="action" id="lock_ph_action">
+      <div class="modal-body">
+        <p id="lock_ph_msg" style="font-size:14px; color:#1e293b; text-align:center; padding: 10px 0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" id="lock_ph_btn" class="btn btn-danger btn-sm">Xác nhận Khóa</button>
+      </div>
+    </form>
+  </div>
+
+<div id="modal-import-gv" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Nhập Giáo viên từ Excel</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'import_gv_excel' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #166534;">
+          <strong>Cấu trúc File Excel bắt buộc:</strong><br>
+          <b>Mã GV</b> | <b>Họ tên</b> | <b>Số điện thoại</b> | <b>Email</b><br>
+          <i>(Mật khẩu mặc định sẽ là: 123)</i>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label style="margin-bottom: 8px; font-weight: 500; color: #1e293b;">
+              <i class="fa-solid fa-paperclip" style="color: #64748b; margin-right: 5px;"></i> Chọn file Excel (.xlsx) <span class="req">*</span>
+            </label>
+            <input type="file" name="file_excel" accept=".xlsx, .xls" required class="form-control" style="cursor: pointer; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-upload"></i> Bắt đầu Import</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-import-hs" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Nhập Học sinh từ Excel</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'import_hs_excel' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #166534;">
+          <strong>Cấu trúc File Excel bắt buộc:</strong><br>
+          <b>Mã HS</b> | <b>Họ tên</b> | <b>Email</b> | <b>Tên Lớp</b><br>
+          <i>(Tên Lớp phải gõ đúng y chang tên lớp đã có trên hệ thống. Mật khẩu: 123)</i>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label style="margin-bottom: 8px; font-weight: 500; color: #1e293b;">
+              <i class="fa-solid fa-paperclip" style="color: #64748b; margin-right: 5px;"></i> Chọn file Excel (.xlsx) <span class="req">*</span>
+            </label>
+            <input type="file" name="file_excel" accept=".xlsx, .xls" required class="form-control" style="cursor: pointer; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-upload"></i> Bắt đầu Import</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="modal-import-ph" class="modal-box" style="display: none">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Nhập Phụ huynh từ Excel</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'import_ph_excel' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #166534;">
+          <strong>Cấu trúc File Excel bắt buộc:</strong><br>
+          <b>Số điện thoại</b> | <b>Họ tên PH</b> | <b>Mã HS liên kết</b><br>
+          <i>(Mã HS phải nhập đúng mã học sinh đã có trên hệ thống để tự liên kết. Mật khẩu: 123)</i>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field" style="width: 100%;">
+            <label style="margin-bottom: 8px; font-weight: 500; color: #1e293b;">
+              <i class="fa-solid fa-paperclip" style="color: #64748b; margin-right: 5px;"></i> Chọn file Excel (.xlsx) <span class="req">*</span>
+            </label>
+            <input type="file" name="file_excel" accept=".xlsx, .xls" required class="form-control" style="cursor: pointer; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc;" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-upload"></i> Bắt đầu Import</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal Xác nhận Khóa/Mở tài khoản -->
+  <div id="modal-lock-gv" class="modal-box" style="display: none; max-width: 420px">
+    <div class="modal-header">
+      <h2 id="lock_gv_title">🔒 Xác nhận khóa tài khoản</h2>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <form class="ajax-loader-form" method="POST" action="{% url 'khoa_giao_vien' %}">
+      {% csrf_token %}
+      <input type="hidden" name="tk_id" id="lock_gv_tk_id">
+      <input type="hidden" name="action" id="lock_gv_action">
+      <div class="modal-body">
+        <p id="lock_gv_msg" style="font-size:14px; color:#1e293b; text-align:center; padding: 10px 0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeModal()">Hủy</button>
+        <button type="submit" id="lock_gv_btn" class="btn btn-danger btn-sm">Xác nhận Khóa</button>
+      </div>
+    </form>
+  </div>
+
+<div id="toast" style="position: fixed; bottom: 24px; right: 24px; z-index: 2000; background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); transform: translateY(80px); opacity: 0; transition: all 0.3s ease; pointer-events: none;">
+  <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 16px"></i>
+  <span id="toast-msg">Lưu thành công!</span>
+</div>
+<div id="cusc-global-loader" style="display: none;">
+    <div class="loader-content">
+        <div class="loader-ring-wrap">
+            <svg class="loader-ring" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#3b82f6"/>
+                        <stop offset="100%" stop-color="#8b5cf6"/>
+                    </linearGradient>
+                </defs>
+                <circle class="loader-ring-bg" cx="50" cy="50" r="42"></circle>
+                <circle class="loader-ring-fg" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <img src="{% static 'images/CUSC Logo Series.png' %}" class="loader-logo" alt="logo">
+        </div>
+        <div class="loader-text">Hệ thống đang xử lý dữ liệu</div>
+        <div class="loader-dots"><span></span><span></span><span></span></div>
+    </div>
+</div>
+{% endblock %} 
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/admin.js' %}"></script>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lấy dữ liệu từ Django bơm ra
+            const TONG_VANG_CP = {{ tong_vang_cp_toan_truong|default:0 }};
+            const TONG_VANG_KP = {{ tong_vang_kp_toan_truong|default:0 }};
+
+            let chartData = [TONG_VANG_CP, TONG_VANG_KP];
+            let chartColors = ['#10b981', '#ef4444'];
+            let chartLabels = ['Có phép', 'Không phép'];
+
+            // Logic thông minh: Nếu toàn trường chưa ai vắng thì vẽ hình tròn màu xám
+            if (TONG_VANG_CP === 0 && TONG_VANG_KP === 0) {
+                chartData = [1];
+                chartColors = ['#e2e8f0'];
+                chartLabels = ['Toàn trường đi học đầy đủ 100%'];
+            }
+
+            const ctx = document.getElementById('doughnutChartToanTruong');
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: chartColors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%', // Tạo độ rỗng ở giữa để thành Doughnut
+                        plugins: {
+                            legend: { display: false }, // Ẩn chú thích mặc định đi vì mình đã tự code ở HTML cho đẹp
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (TONG_VANG_CP === 0 && TONG_VANG_KP === 0) return ' Tuyệt vời! Chưa có lượt vắng nào.';
+                                        return ' ' + context.parsed + ' lượt';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+      // ========================================================
+            // VẼ BIỂU ĐỒ ĐƯỜNG (CHUYÊN CẦN TOÀN TRƯỜNG)
+            // ========================================================
+            const TY_LE_DI_HOC_TT = {{ chuoi_ty_le_tt|safe }};
+
+            const ctxLine = document.getElementById('lineChart');
+            if (ctxLine) {
+                new Chart(ctxLine.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+                        datasets: [{
+                            label: 'Tỷ lệ đi học (%)',
+                            data: TY_LE_DI_HOC_TT,
+                            borderColor: '#3b82f6',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(59,130,246,0.1)',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { suggestedMin: 50, max: 100, ticks: { stepSize: 10 } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+    </script>
+<script>
+    function openModal(id) {
+        const overlay = document.getElementById('modal-overlay');
+        if (overlay) overlay.style.display = 'flex';
+        document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none');
+        const box = document.getElementById(id);
+        if (box) box.style.display = 'block';
+    }
+    
+    function closeModal() {
+        const overlay = document.getElementById('modal-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+    function locDanhSachLop() {
+        const tuKhoa = document.getElementById('search-lop').value.toLowerCase().trim();
+        const khoi   = document.getElementById('filter-khoi').value;
+        const rows   = document.querySelectorAll('.row-lop');
+
+        rows.forEach(function(row) {
+            const tenLop  = row.dataset.ten  || '';
+            const khoiLop = row.dataset.khoi || '';
+
+            const khopTen  = tenLop.includes(tuKhoa);
+            const khopKhoi = khoi === '' || khoiLop === khoi;
+
+            row.style.display = (khopTen && khopKhoi) ? '' : 'none';
+        });
+    }
+    function locDanhSachGV() {
+        const tuKhoa   = document.getElementById('search-gv').value.toLowerCase().trim();
+        const vaitro   = document.getElementById('filter-gv-vaitro').value;
+        const trangthai = document.getElementById('filter-gv-trangthai').value;
+
+        document.querySelectorAll('.row-gv').forEach(function(row) {
+            const khopTen      = (row.dataset.ten + row.dataset.ma).includes(tuKhoa);
+            const khopVaitro   = vaitro === ''    || row.dataset.vaitro  === vaitro;
+            const khopTrangthai = trangthai === '' || row.dataset.active === trangthai;
+            row.style.display  = (khopTen && khopVaitro && khopTrangthai) ? '' : 'none';
+        });
+    }
+
+    function locDanhSachHS() {
+        const tuKhoa = document.getElementById('search-hs').value.toLowerCase().trim();
+        const khoi   = document.getElementById('filter-hs-khoi').value;
+        const lopId  = document.getElementById('filter-hs-lop').value;
+
+        document.querySelectorAll('.row-hs').forEach(function(row) {
+            const khopTen  = (row.dataset.ten + row.dataset.ma).includes(tuKhoa);
+            const khopKhoi = khoi  === '' || row.dataset.khoi === khoi;
+            const khopLop  = lopId === '' || row.dataset.lop  === lopId;
+            row.style.display = (khopTen && khopKhoi && khopLop) ? '' : 'none';
+        });
+    }
+
+  function locDanhSachPH() {
+        const tuKhoa    = document.getElementById('search-ph').value.toLowerCase().trim();
+        const trangthai = document.getElementById('filter-ph-trangthai').value;
+
+        document.querySelectorAll('.row-ph').forEach(function(row) {
+            const khopTen      = (row.dataset.ten + row.dataset.sdt).includes(tuKhoa);
+            const khopTrangthai = trangthai === '' || row.dataset.active === trangthai;
+            row.style.display  = (khopTen && khopTrangthai) ? '' : 'none';
+        });
+    }
+  // HÀM HIỂN THỊ DANH SÁCH HỌC SINH CỦA MỘT LỚP
+      function xemDanhSachHS(lopId, tenLop) {
+          document.getElementById('modal-danhsach-title').innerHTML = '🎓 Danh sách học sinh Lớp ' + tenLop;
+          
+          // Tìm cái bảng dữ liệu tàng hình của lớp đó
+          const tbodyBiMat = document.getElementById('data-hs-lop-' + lopId);
+          let content = tbodyBiMat.innerHTML.trim();
+          
+          // THÔNG MINH HƠN: Nếu bảng tàng hình không có cái <tr> nào (trống rỗng)
+          if (content === "") {
+              content = `<tr><td colspan="3" class="text-center" style="padding: 30px; color: #ef4444; font-style: italic;">Lớp này hiện chưa có học sinh nào!</td></tr>`;
+          }
+          
+          document.getElementById('modal-danhsach-tbody').innerHTML = content;
+          openModal('modal-danhsach-hs');
+      }
+
+    // ✅ SỬA: Xử lý nút sửa Học kỳ bằng data-* (không dùng onclick inline)
+    document.addEventListener('click', function(e) {
+        // Đóng modal khi click ra ngoài
+        const overlay = document.getElementById('modal-overlay');
+        if (e.target === overlay) {
+            closeModal();
+            return;
+        }
+
+        // Nút sửa Học kỳ
+        const btnHK = e.target.closest('.btn-edit-hocky');
+        if (btnHK) {
+            document.getElementById('edit_hk_id').value        = btnHK.dataset.id;
+            document.getElementById('edit_hk_nam').value       = btnHK.dataset.nam;
+            document.getElementById('edit_hk_ky').value        = btnHK.dataset.ky;
+            document.getElementById('edit_hk_bd').value        = btnHK.dataset.bd;
+            document.getElementById('edit_hk_kt').value        = btnHK.dataset.kt;
+            document.getElementById('edit_hk_trangthai').value = btnHK.dataset.trangthai;
+            openModal('modal-edit-hocky');
+            return;
+        }
+        // Nút xóa Học kỳ
+        const btnDelHK = e.target.closest('.btn-delete-hocky');
+        if (btnDelHK) {
+            const ten = btnDelHK.dataset.ten;
+            document.getElementById('delete_hk_id').value = btnDelHK.dataset.id;
+            document.getElementById('delete_hk_msg').innerHTML = `Bạn có chắc muốn XÓA VĨNH VIỄN <strong>${ten}</strong> không?<br><span style="color:#ef4444;font-size:12px;">Hành động này không thể hoàn tác!</span>`;
+            openModal('modal-delete-hocky');
+            return;
+        }
+
+        // ✅ SỬA: Nút sửa Lớp học bằng data-* (không dùng onclick inline)
+        const btnLop = e.target.closest('.btn-edit-lop');
+        if (btnLop) {
+            document.getElementById('edit_lop_id').value   = btnLop.dataset.id;
+            document.getElementById('edit_lop_ten').value  = btnLop.dataset.ten;
+            document.getElementById('edit_lop_khoi').value = btnLop.dataset.khoi;
+            document.getElementById('edit_lop_nam').value  = btnLop.dataset.nam;
+            // THÊM DÒNG NÀY ĐỂ JS BẮT ĐƯỢC TỔ HỢP CŨ
+            document.getElementById('edit_lop_tohop').value = btnLop.dataset.tohop || "";
+            openModal('modal-edit-lop');
+            return;
+        }
+
+        // Nút Sửa Giáo viên
+        const btnEditGV = e.target.closest('.btn-edit-gv');
+        if (btnEditGV) {
+            document.getElementById('edit_gv_id').value    = btnEditGV.dataset.id;
+            document.getElementById('edit_gv_ma').value    = btnEditGV.dataset.ma;
+            document.getElementById('edit_gv_ten').value   = btnEditGV.dataset.ten;
+            document.getElementById('edit_gv_sdt').value   = btnEditGV.dataset.sdt;
+            document.getElementById('edit_gv_email').value = btnEditGV.dataset.email;
+            openModal('modal-edit-gv');
+            return;
+        }
+
+        // Nút Đổi mật khẩu Giáo viên
+        const btnResetGV = e.target.closest('.btn-reset-gv');
+        if (btnResetGV) {
+            document.getElementById('reset_gv_id').value  = btnResetGV.dataset.id;
+            document.getElementById('reset_gv_ten').textContent = btnResetGV.dataset.ten;
+            openModal('modal-reset-gv');
+            return;
+        }
+
+        // Nút Khóa/Mở tài khoản Giáo viên
+        const btnLockGV = e.target.closest('.btn-lock-gv');
+        if (btnLockGV) {
+            const isActive = btnLockGV.dataset.active === 'true';
+            const ten = btnLockGV.dataset.ten;
+            document.getElementById('lock_gv_tk_id').value = btnLockGV.dataset.id;
+            document.getElementById('lock_gv_action').value = isActive ? 'lock' : 'unlock';
+            if (isActive) {
+                document.getElementById('lock_gv_title').textContent = '🔒 Xác nhận khóa tài khoản';
+                document.getElementById('lock_gv_msg').textContent   = `Bạn có chắc muốn KHÓA tài khoản của "${ten}"? Giáo viên này sẽ không thể đăng nhập.`;
+                document.getElementById('lock_gv_btn').className     = 'btn btn-danger btn-sm';
+                document.getElementById('lock_gv_btn').textContent   = 'Xác nhận Khóa';
+            } else {
+                document.getElementById('lock_gv_title').textContent = '🔓 Xác nhận mở tài khoản';
+                document.getElementById('lock_gv_msg').textContent   = `Bạn có chắc muốn MỞ KHÓA tài khoản của "${ten}"?`;
+                document.getElementById('lock_gv_btn').className     = 'btn btn-success btn-sm';
+                document.getElementById('lock_gv_btn').textContent   = 'Xác nhận Mở khóa';
+            }
+            openModal('modal-lock-gv');
+            return;
+        }
+        // Nút Sửa Học sinh
+        const btnEditHS = e.target.closest('.btn-edit-hs');
+        if (btnEditHS) {
+            document.getElementById('edit_hs_id').value    = btnEditHS.dataset.id;
+            document.getElementById('edit_hs_ma').value    = btnEditHS.dataset.ma;
+            document.getElementById('edit_hs_ten').value   = btnEditHS.dataset.ten;
+            document.getElementById('edit_hs_email').value = btnEditHS.dataset.email;
+            document.getElementById('edit_hs_lop').value   = btnEditHS.dataset.lop;
+
+            // THÊM 3 DÒNG NÀY ĐỂ BƠM DỮ LIỆU CŨ VÀO 3 Ô BẠN VỪA TẠO
+            document.getElementById('edit_hs_ngaysinh').value = btnEditHS.dataset.ngaysinh;
+            document.getElementById('edit_hs_gioitinh').value = btnEditHS.dataset.gioitinh;
+            document.getElementById('edit_hs_diachi').value   = btnEditHS.dataset.diachi;
+
+            openModal('modal-edit-hs');
+            return;
+        }
+
+        // Nút Đổi mật khẩu Học sinh
+        const btnResetHS = e.target.closest('.btn-reset-hs');
+        if (btnResetHS) {
+            document.getElementById('reset_hs_id').value        = btnResetHS.dataset.id;
+            document.getElementById('reset_hs_ten').textContent = btnResetHS.dataset.ten;
+            openModal('modal-reset-hs');
+            return;
+        }
+
+        // Nút Khóa/Mở tài khoản Học sinh
+        const btnLockHS = e.target.closest('.btn-lock-hs');
+        if (btnLockHS) {
+            const isActive = btnLockHS.dataset.active === 'true';
+            const ten = btnLockHS.dataset.ten;
+            document.getElementById('lock_hs_tk_id').value = btnLockHS.dataset.id;
+            document.getElementById('lock_hs_action').value = isActive ? 'lock' : 'unlock';
+            if (isActive) {
+                document.getElementById('lock_hs_title').textContent = '🔒 Xác nhận khóa tài khoản';
+                document.getElementById('lock_hs_msg').textContent   = `Bạn có chắc muốn KHÓA tài khoản của "${ten}"? Học sinh này sẽ không thể đăng nhập.`;
+                document.getElementById('lock_hs_btn').className     = 'btn btn-danger btn-sm';
+                document.getElementById('lock_hs_btn').textContent   = 'Xác nhận Khóa';
+            } else {
+                document.getElementById('lock_hs_title').textContent = '🔓 Xác nhận mở tài khoản';
+                document.getElementById('lock_hs_msg').textContent   = `Bạn có chắc muốn MỞ KHÓA tài khoản của "${ten}"?`;
+                document.getElementById('lock_hs_btn').className     = 'btn btn-success btn-sm';
+                document.getElementById('lock_hs_btn').textContent   = 'Xác nhận Mở khóa';
+            }
+            openModal('modal-lock-hs');
+            return;
+        }
+
+        // Nút Sửa Phụ huynh
+        const btnEditPH = e.target.closest('.btn-edit-ph');
+        if (btnEditPH) {
+            document.getElementById('edit_ph_id').value  = btnEditPH.dataset.id;
+            document.getElementById('edit_ph_sdt').value = btnEditPH.dataset.sdt;
+            document.getElementById('edit_ph_ten').value = btnEditPH.dataset.ten;
+            openModal('modal-edit-ph');
+            return;
+        }
+        // Nút Đổi mật khẩu Phụ huynh
+        const btnResetPH = e.target.closest('.btn-reset-ph');
+        if (btnResetPH) {
+            document.getElementById('reset_ph_id').value  = btnResetPH.dataset.id;
+            document.getElementById('reset_ph_ten').textContent = btnResetPH.dataset.ten;
+            openModal('modal-reset-ph');
+            return;
+        }
+
+        // Nút Khóa/Mở tài khoản Phụ huynh
+        const btnLockPH = e.target.closest('.btn-lock-ph');
+        if (btnLockPH) {
+            const isActive = btnLockPH.dataset.active === 'true';
+            const ten = btnLockPH.dataset.ten;
+            document.getElementById('lock_ph_tk_id').value = btnLockPH.dataset.id;
+            document.getElementById('lock_ph_action').value = isActive ? 'lock' : 'unlock';
+            if (isActive) {
+                document.getElementById('lock_ph_title').textContent = '🔒 Xác nhận khóa tài khoản';
+                document.getElementById('lock_ph_msg').textContent   = `Bạn có chắc muốn KHÓA tài khoản của phụ huynh "${ten}"? Phụ huynh này sẽ không thể đăng nhập.`;
+                document.getElementById('lock_ph_btn').className     = 'btn btn-danger btn-sm';
+                document.getElementById('lock_ph_btn').textContent   = 'Xác nhận Khóa';
+            } else {
+                document.getElementById('lock_ph_title').textContent = '🔓 Xác nhận mở tài khoản';
+                document.getElementById('lock_ph_msg').textContent   = `Bạn có chắc muốn MỞ KHÓA tài khoản của phụ huynh "${ten}"?`;
+                document.getElementById('lock_ph_btn').className     = 'btn btn-success btn-sm';
+                document.getElementById('lock_ph_btn').textContent   = 'Xác nhận Mở khóa';
+            }
+            openModal('modal-lock-ph');
+            return;
+        }
+
+      // Nút sửa Môn học
+        const btnMH = e.target.closest('.btn-edit-monhoc');
+        if (btnMH) {
+            document.getElementById('edit_mh_id').value     = btnMH.dataset.id;
+            document.getElementById('edit_mh_ma').value     = btnMH.dataset.ma;
+            document.getElementById('edit_mh_ten').value    = btnMH.dataset.ten;
+            document.getElementById('edit_mh_loai').value   = btnMH.dataset.loai;
+            document.getElementById('edit_mh_nhom').value   = btnMH.dataset.nhom; // Đã thêm dòng này
+            document.getElementById('edit_mh_sotiet').value = btnMH.dataset.sotiet;
+            openModal('modal-edit-monhoc');
+            return;
+        }
+
+        // Nút xóa Môn học
+        const btnDelMH = e.target.closest('.btn-delete-monhoc');
+        if (btnDelMH) {
+            const ten = btnDelMH.dataset.ten;
+            document.getElementById('delete_mh_id').value = btnDelMH.dataset.id;
+            document.getElementById('delete_mh_msg').innerHTML = `Bạn có chắc muốn XÓA VĨNH VIỄN môn <strong>${ten}</strong>?<br><span style="color:#ef4444;font-size:12px;">Cảnh báo: Nếu xóa, môn này sẽ bị gỡ khỏi mọi Tổ hợp!</span>`;
+            openModal('modal-delete-monhoc');
+            return;
+        }
+    });
+    // ===== AJAX THÊM HỌC SINH =====
+    document.getElementById('form-them-hs').addEventListener('submit', function(e) {
+        e.preventDefault(); // Chặn reload trang
+
+        const form    = this;
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        const globalLoader = document.getElementById('cusc-global-loader');
+        globalLoader.style.display = 'flex';
+        requestAnimationFrame(() => globalLoader.classList.add('active'));
+        // Hiện loading trên nút bấm
+        btnSubmit.disabled    = true;
+        btnSubmit.innerHTML   = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+        const formData = new FormData(form);
+
+        fetch("{% url 'them_hoc_sinh' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // 1. Hiện toast thành công
+                showToast(data.message, 'success');
+
+                // 2. Thêm hàng mới vào bảng ngay lập tức
+                const tbody = document.querySelector('#tab-students table tbody');
+                const dongMoi = document.createElement('tr');
+                dongMoi.className = 'row-hs';
+                dongMoi.dataset.ten  = data.hoc_sinh.ten.toLowerCase();
+                dongMoi.dataset.ma   = data.hoc_sinh.ma.toLowerCase();
+                dongMoi.dataset.khoi = data.hoc_sinh.lop_khoi;
+                dongMoi.dataset.lop  = data.hoc_sinh.lop_id;
+                dongMoi.innerHTML = `
+                  <td><span class="username-id">${data.hoc_sinh.ma}</span></td>
+                  <td class="person-name">${data.hoc_sinh.ten}</td>
+                  <td>${data.hoc_sinh.email || 'Chưa có'}</td>
+                  <td class="class-name">${data.hoc_sinh.ten_lop}</td>
+                  <td><span style="color:#ef4444;font-style:italic">Chưa liên kết</span></td>
+                  <td><span class="status-badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-icon btn-edit-hs"
+                        data-id="${data.hoc_sinh.id}"
+                        data-ma="${data.hoc_sinh.ma}"
+                        data-ten="${data.hoc_sinh.ten}"
+                        data-email=""
+                        data-lop="${data.hoc_sinh.lop_id}"
+                        title="Sửa thông tin">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </button>
+                      <button class="btn-icon btn-reset-hs"
+                        data-id="${data.hoc_sinh.id}"
+                        data-ten="${data.hoc_sinh.ten}"
+                        title="Đổi mật khẩu">
+                        <i class="fa-solid fa-key"></i>
+                      </button>
+                      <button class="btn-icon btn-lock-hs"
+                        data-id="${data.hoc_sinh.tk_id}"
+                        data-ten="${data.hoc_sinh.ten}"
+                        data-active="true"
+                        title="Khóa tài khoản">
+                        <i class="fa-solid fa-lock"></i>
+                      </button>
+                    </div>
+                  </td>`;
+
+                // Xóa dòng "Chưa có học sinh" nếu còn
+                const dongTrong = tbody.querySelector('td[colspan]');
+                if (dongTrong) dongTrong.closest('tr').remove();
+
+                tbody.appendChild(dongMoi);
+
+                // 3. Reset form và đóng modal
+                form.reset();
+                closeModal();
+
+            } else {
+                // Hiện toast lỗi
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(() => {
+            showToast('Lỗi kết nối! Vui lòng thử lại.', 'error');
+        })
+        .finally(() => {
+            globalLoader.classList.remove('active');
+            setTimeout(() => globalLoader.style.display = 'none', 300);
+            // Trả nút về trạng thái bình thường
+            btnSubmit.disabled  = false;
+            btnSubmit.innerHTML = 'Tạo tài khoản';
+        });
+    });
+    // ===== AJAX THÊM PHỤ HUYNH =====
+    document.getElementById('form-them-ph').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form      = this;
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        const globalLoader = document.getElementById('cusc-global-loader');
+        globalLoader.style.display = 'flex';
+        requestAnimationFrame(() => globalLoader.classList.add('active'));
+        btnSubmit.disabled  = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+        fetch("{% url 'them_phu_huynh' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: new FormData(form)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                const tbody   = document.querySelector('#tab-parents table tbody');
+                const dongMoi = document.createElement('tr');
+                dongMoi.className = 'row-ph';
+                dongMoi.dataset.ten    = data.phu_huynh.ten.toLowerCase();
+                dongMoi.dataset.sdt    = data.phu_huynh.sdt;
+                dongMoi.dataset.active = 'active';
+
+                const hienThiHS = data.phu_huynh.ten_hs
+                    ? `<div class="student-chip">
+                        <i class="fa-solid fa-user-graduate" style="color:var(--sidebar-active)"></i>
+                        ${data.phu_huynh.ten_hs}
+                        <span>(${data.phu_huynh.lop_hs})</span>
+                       </div>`
+                    : `<span style="color:#ef4444;font-style:italic">Chưa liên kết</span>`;
+
+                dongMoi.innerHTML = `
+                  <td>
+                    <span class="username-id">
+                      <i class="fa-solid fa-mobile-screen-button"></i> ${data.phu_huynh.sdt}
+                    </span>
+                  </td>
+                  <td class="person-name">${data.phu_huynh.ten}</td>
+                  <td>${hienThiHS}</td>
+                  <td><span class="status-badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-icon btn-edit-ph"
+                        data-id="${data.phu_huynh.id}"
+                        data-sdt="${data.phu_huynh.sdt}"
+                        data-ten="${data.phu_huynh.ten}"
+                        title="Sửa thông tin">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </button>
+                      <button class="btn-icon btn-reset-ph"
+                        data-id="${data.phu_huynh.id}"
+                        data-ten="${data.phu_huynh.ten}"
+                        title="Đổi mật khẩu">
+                        <i class="fa-solid fa-key"></i>
+                      </button>
+                      <button class="btn-icon btn-lock-ph"
+                        data-id="${data.phu_huynh.tk_id}"
+                        data-ten="${data.phu_huynh.ten}"
+                        data-active="true"
+                        title="Khóa tài khoản">
+                        <i class="fa-solid fa-lock"></i>
+                      </button>
+                      </div>
+                  </td>`;
+
+                const dongTrong = tbody.querySelector('td[colspan]');
+                if (dongTrong) dongTrong.closest('tr').remove();
+
+                tbody.appendChild(dongMoi);
+                form.reset();
+                closeModal();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(() => showToast('Lỗi kết nối! Vui lòng thử lại.', 'error'))
+        .finally(() => {
+            globalLoader.classList.remove('active');
+            setTimeout(() => globalLoader.style.display = 'none', 300);
+            btnSubmit.disabled  = false;
+            btnSubmit.innerHTML = 'Lưu Phụ huynh';
+        });
+    });
+    // ===== AJAX THÊM GIÁO VIÊN =====
+    document.getElementById('form-them-gv').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const form      = this;
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        const globalLoader = document.getElementById('cusc-global-loader');
+        globalLoader.style.display = 'flex';
+        requestAnimationFrame(() => globalLoader.classList.add('active'));
+        btnSubmit.disabled  = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+        fetch("{% url 'them_giao_vien' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: new FormData(form)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                const tbody  = document.querySelector('#tab-teachers table tbody');
+                const dongMoi = document.createElement('tr');
+                dongMoi.className = 'row-gv';
+                dongMoi.dataset.ten      = data.giao_vien.ten.toLowerCase();
+                dongMoi.dataset.ma       = data.giao_vien.ma.toLowerCase();
+                dongMoi.dataset.vaitro   = 'bomon';
+                dongMoi.dataset.active   = 'active';
+                dongMoi.innerHTML = `
+                  <td><span class="teacher-id">${data.giao_vien.ma}</span></td>
+                  <td class="person-name">${data.giao_vien.ten}</td>
+                  <td>${data.giao_vien.sdt}</td>
+                  <td style="color:var(--text-muted);font-size:13px">${data.giao_vien.email}</td>
+                  <td><span class="status-badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-icon btn-edit-gv"
+                        data-id="${data.giao_vien.id}"
+                        data-ma="${data.giao_vien.ma}"
+                        data-ten="${data.giao_vien.ten}"
+                        data-sdt="${data.giao_vien.sdt}"
+                        data-email="${data.giao_vien.email}"
+                        title="Sửa thông tin">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </button>
+                      <button class="btn-icon btn-reset-gv"
+                        data-id="${data.giao_vien.id}"
+                        data-ten="${data.giao_vien.ten}"
+                        title="Đổi mật khẩu">
+                        <i class="fa-solid fa-key"></i>
+                      </button>
+                      <button class="btn-icon btn-lock-gv"
+                        data-id="${data.giao_vien.tk_id}"
+                        data-ten="${data.giao_vien.ten}"
+                        data-active="true"
+                        title="Khóa tài khoản">
+                        <i class="fa-solid fa-lock"></i>
+                      </button>
+                    </div>
+                  </td>`;
+
+                const dongTrong = tbody.querySelector('td[colspan]');
+                if (dongTrong) dongTrong.closest('tr').remove();
+
+                tbody.appendChild(dongMoi);
+                form.reset();
+                closeModal();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(() => showToast('Lỗi kết nối! Vui lòng thử lại.', 'error'))
+        .finally(() => {
+            globalLoader.classList.remove('active');
+            setTimeout(() => globalLoader.style.display = 'none', 300);
+            btnSubmit.disabled  = false;
+            btnSubmit.innerHTML = 'Lưu Giáo viên';
+        });
+    });
+// ===== PHÂN TRANG CHUNG =====
+    function taoPhanTrang(config) {
+        const SO_DONG = config.soDong || 10;
+        let trangHT   = 1;
+
+        const nutStyle = (active) => `
+            display:inline-flex;align-items:center;justify-content:center;
+            min-width:34px;height:34px;padding:0 10px;border-radius:8px;
+            border:1px solid ${active ? '#6366f1' : '#e2e8f0'};
+            background:${active ? '#6366f1' : '#fff'};
+            color:${active ? '#fff' : '#475569'};
+            font-size:13px;font-weight:${active ? '600' : '400'};
+            cursor:${active ? 'default' : 'pointer'};
+        `;
+
+        function layDong() {
+            return Array.from(document.querySelectorAll(config.rowSelector));
+        }
+
+        function hienThiTrang(trang) {
+            const tatCa     = layDong();
+            const tong      = tatCa.length;
+            const tongTrang = Math.ceil(tong / SO_DONG) || 1;
+            trang           = Math.max(1, Math.min(trang, tongTrang));
+            trangHT         = trang;
+
+            const batDau  = (trang - 1) * SO_DONG;
+            const ketThuc = batDau + SO_DONG;
+
+            tatCa.forEach((row, i) => {
+                row.style.display = (i >= batDau && i < ketThuc) ? '' : 'none';
+            });
+
+            const tu  = tong === 0 ? 0 : batDau + 1;
+            const den = Math.min(ketThuc, tong);
+            document.getElementById(config.infoId).textContent =
+                `Hiển thị ${tu} - ${den} / ${tong} ${config.tenDon}`;
+
+            renderNut(trang, tongTrang);
+        }
+
+        function renderNut(trangHien, tongTrang) {
+            const container = document.getElementById(config.btnsId);
+            container.innerHTML = '';
+
+            // Prev
+            const prev = document.createElement('button');
+            prev.innerHTML     = '<i class="fa-solid fa-chevron-left"></i>';
+            prev.style.cssText = nutStyle(false);
+            prev.disabled      = trangHien === 1;
+            if (trangHien === 1) prev.style.opacity = '0.4';
+            prev.onclick = () => hienThiTrang(trangHien - 1);
+            container.appendChild(prev);
+
+            // Số trang
+            let dauSo = Math.max(1, trangHien - 2);
+            let cuoiSo = Math.min(tongTrang, dauSo + 4);
+            dauSo = Math.max(1, cuoiSo - 4);
+
+            if (dauSo > 1) {
+                themSo(container, 1, false);
+                if (dauSo > 2) themDots(container);
+            }
+            for (let i = dauSo; i <= cuoiSo; i++) themSo(container, i, i === trangHien);
+            if (cuoiSo < tongTrang) {
+                if (cuoiSo < tongTrang - 1) themDots(container);
+                themSo(container, tongTrang, false);
+            }
+
+            // Next
+            const next = document.createElement('button');
+            next.innerHTML     = '<i class="fa-solid fa-chevron-right"></i>';
+            next.style.cssText = nutStyle(false);
+            next.disabled      = trangHien === tongTrang;
+            if (trangHien === tongTrang) next.style.opacity = '0.4';
+            next.onclick = () => hienThiTrang(trangHien + 1);
+            container.appendChild(next);
+        }
+
+        function themSo(container, so, isActive) {
+            const btn = document.createElement('button');
+            btn.textContent   = so;
+            btn.style.cssText = nutStyle(isActive);
+            if (!isActive) btn.onclick = () => hienThiTrang(so);
+            container.appendChild(btn);
+        }
+
+        function themDots(container) {
+            const dots = document.createElement('span');
+            dots.textContent   = '...';
+            dots.style.cssText = 'padding:0 4px;color:#94a3b8;line-height:34px;';
+            container.appendChild(dots);
+        }
+
+        // Khởi chạy
+        document.addEventListener('DOMContentLoaded', () => hienThiTrang(1));
+
+        // Gọi lại khi switch tab
+        if (config.tabBtnId) {
+            const btn = document.getElementById(config.tabBtnId);
+            if (btn) btn.addEventListener('click', () => setTimeout(() => hienThiTrang(trangHT), 50));
+        }
+
+        // Expose để gọi từ bên ngoài (dùng cho filter)
+        return { hienThiTrang };
+    }
+
+// Khởi tạo phân trang cho từng tab
+    const phanTrangHK = taoPhanTrang({
+        // ĐÃ SỬA: Đổi :first-of-type thành :nth-of-type(2) để trỏ đúng vào bảng thứ 2
+        rowSelector: '#tab-classes .table-card:nth-of-type(2) tbody tr', 
+        infoId:      'pagination-hocky-info',
+        btnsId:      'pagination-hocky-btns',
+        tenDon:      'học kỳ',
+        tabBtnId:    'tab-classes-btn',
+        soDong:      5
+    });
+
+    const phanTrangGV = taoPhanTrang({
+        rowSelector: '#tab-teachers tbody tr.row-gv',
+        infoId:      'pagination-gv-info',
+        btnsId:      'pagination-gv-btns',
+        tenDon:      'giáo viên',
+        tabBtnId:    'tab-teachers-btn',
+        soDong:      7
+    });
+
+    const phanTrangHS = taoPhanTrang({
+        rowSelector: '#tab-students tbody tr.row-hs',
+        infoId:      'pagination-hs-info',
+        btnsId:      'pagination-hs-btns',
+        tenDon:      'học sinh',
+        tabBtnId:    'tab-students-btn',
+        soDong:      7
+    });
+
+    const phanTrangPH = taoPhanTrang({
+        rowSelector: '#tab-parents tbody tr.row-ph',
+        infoId:      'pagination-ph-info',
+        btnsId:      'pagination-ph-btns',
+        tenDon:      'phụ huynh',
+        tabBtnId:    'tab-parents-btn',
+        soDong:      7
+    });
+
+    const phanTrangCN = taoPhanTrang({
+        rowSelector: '#tab-assignments tbody tr',
+        infoId:      'pagination-cn-info',
+        btnsId:      'pagination-cn-btns',
+        tenDon:      'lớp',
+        tabBtnId:    'tab-assignments-btn',
+        soDong:      7
+    });
+
+// ===== GHI NHỚ TAB VÀ CHUYỂN NGAY LẬP TỨC (CHỐNG LỖI CHỚP MÀN HÌNH) =====
+
+    // 1. Chạy NGAY TỨC THÌ (Đã được lôi ra khỏi hộp chờ): Đọc bộ nhớ và ép chuyển Tab lập tức
+    (function() {
+        const tabCu = localStorage.getItem('tabDangMo');
+        if (tabCu && typeof switchTab === 'function') {
+            switchTab(tabCu);
+        }
+    })();
+
+    // 2. Vẫn giữ lại hộp chờ để gắn máy theo dõi vào các nút bấm (Cái này bắt buộc phải chờ)
+    document.addEventListener('DOMContentLoaded', function() {
+        const cacNutTab = document.querySelectorAll('.nav-link');
+        cacNutTab.forEach(function(nut) {
+            nut.addEventListener('click', function() {
+                const lenhOnclick = nut.getAttribute('onclick');
+                if (lenhOnclick) {
+                    // Cắt lấy cái tên tab (VD: 'classes', 'teachers') để lưu vào bộ nhớ
+                    const tenTab = lenhOnclick.match(/'([^']+)'/)[1];
+                    localStorage.setItem('tabDangMo', tenTab);
+                }
+            });
+        });
+    });
+</script>
+
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      {% for message in messages %}
+          showToast("{{ message }}", "{% if message.tags == 'error' %}error{% else %}success{% endif %}");
+      {% endfor %}
+  });
+</script>
+{% endif %} 
+<script>
+  // JS CHỈ KÍCH HOẠT CHO NÚT KHÓA TÀI KHOẢN HỌC SINH ĐỂ TEST
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tìm đúng cái form khóa học sinh
+        const formKhoaHS = document.querySelector('#modal-lock-hs form');
+        if (!formKhoaHS) return;
+
+        formKhoaHS.addEventListener('submit', function(e) {
+            e.preventDefault(); // Dừng ngay hành động tải lại trang của trình duyệt
+
+            const globalLoader = document.getElementById('cusc-global-loader');
+            const tkId = this.querySelector('[name="tk_id"]').value;
+            const action = this.querySelector('[name="action"]').value;
+            const isActiveMoi = (action === 'unlock');
+
+            // BẬT MÀN HÌNH CHỜ
+            globalLoader.style.display = 'flex';
+            requestAnimationFrame(() => globalLoader.classList.add('active'));
+
+            // Gửi dữ liệu đi bằng AJAX
+            fetch('{% url "khoa_hoc_sinh" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: new FormData(this)
+            })
+            .then(res => res.json())
+            .then(data => {
+                // CHO MÀN HÌNH CHỜ HIỂN THỊ ĐỦ 0.6s ĐỂ NGẮM LOGO RỒI MỚI TẮT
+                setTimeout(() => {
+                    globalLoader.classList.remove('active');
+                    setTimeout(() => globalLoader.style.display = 'none', 300);
+
+                    if (data.success) {
+                        showToast(data.message, 'success'); // Văng cái thông báo xanh lá ra
+                        closeModal(); // Đóng bảng xác nhận
+
+                        // CẬP NHẬT NÚT BẤM VÀ MÀU SẮC NGAY LẬP TỨC (MÀ KHÔNG CHỚP TRANG)
+                        const btnKhoa = document.querySelector(`.btn-lock-hs[data-id="${tkId}"]`);
+                        if (btnKhoa) {
+                            const tr = btnKhoa.closest('tr');
+                            const colTrangThai = tr.querySelector('.status-badge');
+                            
+                            btnKhoa.dataset.active = isActiveMoi ? 'true' : 'false';
+                            btnKhoa.title = isActiveMoi ? 'Khóa tài khoản' : 'Mở tài khoản';
+                            btnKhoa.innerHTML = `<i class="fa-solid ${isActiveMoi ? 'fa-lock' : 'fa-lock-open'}"></i>`;
+                            
+                            if (isActiveMoi) {
+                                btnKhoa.classList.remove('btn-locked');
+                                colTrangThai.className = 'status-badge bg-success';
+                                colTrangThai.textContent = 'Đang hoạt động';
+                                colTrangThai.style.cssText = ''; 
+                            } else {
+                                btnKhoa.classList.add('btn-locked');
+                                colTrangThai.className = 'status-badge';
+                                colTrangThai.textContent = 'Đã khóa';
+                                colTrangThai.style.cssText = 'background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5;';
+                            }
+                        }
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                }, 600); // 600ms
+            })
+            .catch(() => {
+                globalLoader.classList.remove('active');
+                setTimeout(() => globalLoader.style.display = 'none', 300);
+                showToast('Lỗi mạng, vui lòng thử lại!', 'error');
+            });
+        });
+    });
+</script>
+{% endblock %}

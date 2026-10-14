@@ -1,0 +1,23 @@
+# Bảo mật & Môi trường ảo
+.env
+venv/
+.venv/
+env/
+
+# Dữ liệu người dùng & AI Vector DB
+media/
+data/chroma_db/
+
+# Django & Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+staticfiles/
+*.log
+
+# Cấu hình IDE & File rác hệ điều hành
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Bảng màu chuẩn */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-body: #e9f0fc;
+    --bg-sidebar: #0f172a;
+    --text-sidebar: #f8fafc;
+    --text-sidebar-muted: #94a3b8;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    
+    /* Kích thước chuẩn */
+    --sidebar-width: 260px;
+    --topbar-height: 70px;
+}
+
+html, body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-sidebar); /* để lộ góc bo cũng cùng tông với sidebar */
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+.main-wrapper {
+    background-color: var(--bg-body);
+}
+
+/* ================= BỐ CỤC CHUNG ================= */
+.wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #111c33 0%, #0f172a 55%, #0b1220 100%);
+    color: var(--text-sidebar);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 28px 28px 0;
+    box-shadow: 8px 0 30px -10px rgba(15, 23, 42, 0.45);
+    overflow: hidden;
+}
+
+/* Viền sáng mảnh, tạo điểm nhấn tinh tế dọc theo cạnh phải */
+.sidebar::after {
+    content: '';
+    position: absolute;
+    top: 12%;
+    right: 0;
+    width: 2px;
+    height: 76%;
+    background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.55), transparent);
+}
+
+.sidebar-brand {
+    height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav {
+    padding: 1.5rem 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.nav-item {
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    color: var(--text-sidebar-muted);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-link i {
+    margin-right: 12px;
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-link:hover, .nav-link.active {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+/* ================= MAIN CONTENT ================= */
+.main-wrapper {
+    flex-grow: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ================= TOPBAR (THANH TRÊN CÙNG) ================= */
+.topbar {
+    height: var(--topbar-height);
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0 0 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.page-content {
+    padding: 2rem;
+    flex-grow: 1;
+}
+
+/* ================= TÙY CHỈNH THÀNH PHẦN BOOTSTRAP ================= */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 1.5rem;
+    border-bottom-color: var(--border-color);
+    vertical-align: middle;
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    background-color: #f8fafc;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+/* ==========================================================
+   BỌC THÉP TỐI ĐA CHO LOGO (CHỐNG LẠI MỌI FILE CSS KHÁC)
+   ========================================================== */
+
+/* --- 1. KHI MỞ RỘNG (BẮT BUỘC PHẢI HIỂN THỊ) --- */
+body .sidebar-brand {
+    height: 70px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 24px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+body .brand-logo-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    width: 100% !important;
+    text-decoration: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+body .brand-img {
+    height: 42px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    object-fit: contain !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin: 0 !important;
+}
+
+body .brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    line-height: 1.2 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Đổ màu an toàn cho chữ Gradient để không bị trong suốt (tàng hình) */
+body .brand-title {
+    font-weight: 800 !important;
+    font-size: 1.25rem !important;
+    letter-spacing: 1.5px !important;
+    color: #ffffff !important; 
+    background: linear-gradient(to right, #ffffff, #cbd5e1) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    display: block !important;
+}
+
+body .brand-subtitle {
+    font-size: 0.65rem !important;
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    display: block !important;
+}
+
+/* --- 2. KHI THU GỌN (BÓP NHỎ LOGO, ẨN CHỮ) --- */
+body .wrapper.collapsed .sidebar { width: 70px !important; }
+body .wrapper.collapsed .main-wrapper { margin-left: 70px !important; }
+
+body .wrapper.collapsed .sidebar-brand {
+    padding: 0 !important;
+    justify-content: center !important;
+}
+
+body .wrapper.collapsed .brand-logo-wrapper {
+    justify-content: center !important;
+    gap: 0 !important;
+}
+
+body .wrapper.collapsed .brand-img {
+    height: 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    margin: 0 auto !important;
+}
+
+body .wrapper.collapsed .brand-text {
+    display: none !important;
+}

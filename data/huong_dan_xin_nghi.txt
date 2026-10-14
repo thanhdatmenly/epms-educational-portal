@@ -1,0 +1,6 @@
+HƯỚNG DẪN XIN NGHỈ PHÉP TRÊN HỆ THỐNG ePMS
+Để tạo đơn xin phép nghỉ học cho học sinh, Phụ huynh vui lòng thực hiện đúng theo 3 bước sau trên giao diện phần mềm:
+- Bước 1: Ở menu dọc bên trái màn hình, nhấp chuột vào mục "Đơn xin nghỉ học".
+- Bước 2: Nhìn lên góc trên bên phải của màn hình, bấm vào nút "Tạo đơn mới" (có màu xanh dương).
+- Bước 3: Điền đầy đủ các thông tin bắt buộc gồm: Ngày bắt đầu, Ngày kết thúc và Lý do xin nghỉ. Phụ huynh có thể tải lên ảnh minh chứng (như giấy khám bệnh) nếu có. Cuối cùng, bấm nút "Gửi đơn".
+Lưu ý: Đơn xin nghỉ sẽ được gửi trực tiếp đến hộp thư của Giáo viên chủ nhiệm để chờ phê duyệt. Phụ huynh có thể theo dõi trạng thái đơn (Chờ duyệt, Đã duyệt, Từ chối) ngay tại màn hình danh sách đơn.

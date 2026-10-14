@@ -1,0 +1,637 @@
+/* ━━━ BIẾN MÀU ĐỒNG BỘ VỚI STUDENT ━━━ */
+
+:root {
+  --primary: #0f172a;
+  --primary-mid: #1e293b;
+  --accent: #4f46e5;
+  --accent-light: #e0e7ff;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-color: #e2e8f0;   /* alias dùng trong teacher.css cũ */
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --green: #16a34a; --green-bg: #f0fdf4; --green-border: #bbf7d0;
+  --amber: #d97706; --amber-bg: #fffbe6; --amber-border: #ffe79a;
+  --red:   #dc2626; --red-bg:   #fef2f2; --red-border:   #fca5a5;
+  --blue:  #3b82f6; --blue-bg:  #eff6ff; --blue-border:  #bfdbfe;
+  --r: 12px; --r-sm: 8px; --r-lg: 18px;
+  --shadow-sm: 0 2px 8px -1px rgba(15,23,42,.04), 0 1px 3px -1px rgba(15,23,42,.02);
+  --shadow-md: 0 10px 25px -5px rgba(15,23,42,.05), 0 8px 10px -6px rgba(15,23,42,.05);
+  --sidebar-width-full: 260px;
+  --sidebar-width-collapsed: 80px;
+}
+
+/* ━━━ FONT ━━━ */
+body { font-family: 'Inter', sans-serif; }  
+
+/* ━━━ WRAPPER & SIDEBAR LAYOUT ━━━ */
+.wrapper { display: flex; transition: all .3s ease; }
+
+.sidebar {
+  width: var(--sidebar-width-full);
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  background: #1a2744;
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+  z-index: 1000;
+  overflow-x: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.main-wrapper {
+  margin-left: var(--sidebar-width-full);
+  width: calc(100% - var(--sidebar-width-full));
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ━━━ TRẠNG THÁI THU GỌN ━━━ */
+.wrapper.collapsed .sidebar { width: var(--sidebar-width-collapsed); }
+.wrapper.collapsed .main-wrapper {
+  margin-left: var(--sidebar-width-collapsed);
+  width: calc(100% - var(--sidebar-width-collapsed));
+}
+.wrapper.collapsed .nav-text,
+.wrapper.collapsed .sidebar-header-label,
+.wrapper.collapsed .badge {
+  display: none !important;
+}
+.wrapper.collapsed .nav-link {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0 !important;
+}
+.wrapper.collapsed .brand-text { display: none !important; }
+.wrapper.collapsed .sidebar-brand { justify-content: center !important; }
+
+/* ━━━ NAV LINKS ━━━ */
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all .25s ease;
+  border-left: 4px solid transparent;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.nav-link:hover {
+  color: #ffffff;
+  background: rgba(255,255,255,.06);
+}
+.nav-link.active {
+  color: #ffffff;
+  background: rgba(255,255,255,.1);
+  border-left-color: #3b82f6;
+  font-weight: 600;
+  
+}
+.nav-link i { font-size: 18px; flex-shrink: 0; }
+.nav-link:active i { transform: scale(.9); }
+
+/* ━━━ TOPBAR & PAGE LAYOUT ━━━ */
+.topbar {
+  height: 70px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+    border-radius: 0 0 20px 20px;   /* dòng mới thêm */
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+.page-content { padding: 28px 32px; background: var(--bg-body) !important; min-height: calc(100vh - 70px); }
+/* Reset & override những chỗ base.html chưa có */
+.tab-content{display:none; animation: fadeIn 0.2s ease;}
+.tab-content.active{display:block}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Nút bấm & Tiện ích chung */
+.header-actions{display:flex;align-items:center;gap:10px; margin-bottom: 20px;}
+.btn-outline{background:#fff;border:1px solid var(--border-color);color:var(--text-muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;transition:.2s}
+.btn-outline:hover{background:#f8fafc}
+.btn-sm{padding:5px 10px!important;font-size:11px!important;border-radius:5px!important}
+
+/* Thẻ thống kê */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border-color);border-radius:10px;padding:16px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+.stat-card .val{font-size:24px;font-weight:700;margin-bottom:4px}
+.stat-card .lbl{font-size:13px;font-weight:500;margin-bottom:2px}
+.stat-card .sub{font-size:11px;color:var(--text-muted)}
+.val-green{color:#10b981}.val-red{color:#ef4444}.val-blue{color:#2563eb}
+.sub-green{color:#10b981!important}.sub-red{color:#ef4444!important}
+
+/* Bảng biểu */
+.card-box{background:#fff;border:1px solid var(--border-color);border-radius:10px;padding:18px;margin-bottom:18px}
+.action-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px}
+.search-wrap{position:relative;flex:1;max-width:260px}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px}
+.search-wrap input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border-color);border-radius:6px;font-size:13px;outline:none;color:var(--text-main)}
+select.filter{padding:7px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;color:var(--text-muted);background:#fff;outline:none;cursor:pointer}
+
+.t-center{text-align:center}
+.person-name{font-weight:600;color:#0f172a}
+
+.table-actions{display:flex;gap:5px;justify-content:center}
+.btn-icon{width:28px;height:28px;border-radius:5px;border:1px solid var(--border-color);background:#fff;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s}
+.btn-icon:hover{color:var(--primary);background:#f8fafc}
+.btn-icon.del:hover{color:#ef4444;background:#fee2e2;border-color:#fca5a5}
+.btn-icon.approve:hover{color:#10b981;background:#d1fae5;border-color:#6ee7b7}
+
+/* Badges & Alerts */
+.badge-pill{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block}
+.bp-green{background:#d1fae5;color:#065f46}.bp-red{background:#fee2e2;color:#991b1b}
+.bp-yellow{background:#fef3c7;color:#92400e}.bp-blue{background:#dbeafe;color:#1e40af}
+
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:10px 14px;border-radius:7px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;margin-bottom:16px}
+.alert-warn{background:#fffbeb;border:1px solid #fde68a;color:#b45309;padding:10px 14px;border-radius:7px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;margin-bottom:16px}
+
+/* Cột điểm */
+.score-input{width:52px;border:1px solid var(--border-color);border-radius:5px;padding:4px 6px;font-size:12px;text-align:center;color:var(--text-main);outline:none}
+.score-input:focus{border-color:var(--primary)}
+.score-avg{font-weight:700;color:var(--primary)}
+select.conduct-sel{padding:5px 8px;border:1px solid var(--border-color);border-radius:5px;font-size:12px;background:#fff;outline:none}
+.dd-locked-row { pointer-events: none; opacity: 0.6; background-color: #f8fafc; }
+
+/* Giao diện Messenger */
+.messenger-layout{display:flex;height:calc(100vh - 180px);gap:0;border:1px solid var(--border-color);border-radius:12px;overflow:hidden;background:#fff}
+.msg-sidebar{width:300px;flex-shrink:0;border-right:1px solid var(--border-color);display:flex;flex-direction:column;background:#fff}
+.msg-sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.msg-sidebar-title{font-size:16px;font-weight:700;color:#0f172a}
+.msg-search{padding:10px 14px;border-bottom:1px solid var(--border-color)}
+.msg-list{flex:1;overflow-y:auto}
+
+.msg-contact{display:flex;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid #f8fafc;transition:.15s;position:relative}
+.msg-contact:hover{background:#f8fafc}
+.msg-contact.active{background:#eff6ff}
+.msg-contact.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);border-radius:0 2px 2px 0}
+.msg-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;position:relative}
+.msg-online{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.msg-unread-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0}
+
+/* Popup thông tin HS (Đã fix lỗi căn giữa) */
+.stu-name-link{color:var(--primary);font-weight:600;cursor:pointer;text-decoration:none;border-bottom:1px dashed rgba(37,99,235,.35);transition:.15s}
+.stu-name-link:hover{color:#1d4ed8;border-bottom-color:#1d4ed8}
+.ph-popup-overlay{display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.15)}
+.ph-popup-overlay.show{display:block}
+.ph-popup{
+    position:fixed;
+    z-index:1001;
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 8px 40px rgba(0,0,0,.18);
+    width:320px;
+    padding:0;
+    overflow:hidden;
+    animation:popIn .18s ease;
+    top: 50% !important;     
+    left: 50% !important;    
+    transform: translate(-50%, -50%) scale(1) !important; 
+}
+@keyframes popIn { from { opacity: 0; transform: translate(-50%, -43%) scale(.93) } to { opacity: 1; transform: translate(-50%, -50%) scale(1) } }
+
+/* Toast & Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box-custom{background:#fff;border-radius:12px;padding:24px;width:440px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.2); transition: width 0.2s ease;}
+
+/* =========================================
+   GIAO DIỆN CHAT PREMIUM (ZALO/MESSENGER STYLE)
+   ========================================= */
+.messenger, .messenger-layout { 
+    height: calc(100vh - 150px) !important; /* Phép màu kéo dài sát đáy màn hình */
+    min-height: 550px !important; 
+    max-height: none !important; /* Gỡ bỏ giới hạn chiều cao */
+    overflow: hidden !important; 
+}
+
+/* Danh bạ bên trái */
+.msg-contacts, .msg-sidebar { background: #f8fafc; border-right: 1px solid #e2e8f0; }
+.contact-item, .msg-contact-item { border-radius: 12px; margin: 4px 10px; border-bottom: none !important;}
+.contact-item:hover, .msg-contact-item:hover { background: #fff !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transform: translateY(-1px); }
+
+/* Khung Chat bên phải */
+.msg-window { 
+    padding: 0 !important; flex: 1 !important; display: flex !important; 
+    flex-direction: column !important; height: 100% !important; 
+    overflow: hidden !important; background: #f0f2f5 !important; 
+}
+#msg-chat-active {
+    padding: 0 !important; flex: 1 !important; 
+    /* Đã xóa display: flex !important để JS có thể ẩn/hiện được */
+    flex-direction: column !important; height: 100% !important; 
+    overflow: hidden !important; background: #f0f2f5 !important; 
+}
+
+/* Header của khung chat */
+.msg-window-head { 
+    padding: 16px 20px !important; background: rgba(255, 255, 255, 0.9) !important; 
+    backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+    border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 10;
+}
+
+/* Thân chat */
+#chat-body, #chat-messages { 
+    flex: 1 1 auto !important; min-height: 0 !important; 
+    overflow-y: auto !important; padding: 20px !important; 
+    display: flex; flex-direction: column;
+}
+
+/* Thanh cuộn tàng hình */
+#chat-body::-webkit-scrollbar, #chat-messages::-webkit-scrollbar { width: 5px; }
+#chat-body::-webkit-scrollbar-track, #chat-messages::-webkit-scrollbar-track { background: transparent; }
+#chat-body::-webkit-scrollbar-thumb, #chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+
+/* Hiệu ứng Pop-in */
+@keyframes msgPopIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+.msg-bubble-wrapper { animation: msgPopIn 0.25s ease-out forwards; margin-bottom: 8px; }
+
+/* BONG BÓNG TIN NHẮN ĐỐI TÁC (Màu trắng) */
+.msg-them .msg-bubble { 
+    background: #ffffff; color: #1c1e21; 
+    border: 1px solid #e4e6eb; 
+    border-radius: 20px 20px 20px 4px; /* Tròn trĩnh như Messenger */
+    padding: 10px 16px; font-size: 14.5px; line-height: 1.4; 
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); 
+    display: inline-block; word-wrap: break-word;
+}
+
+/* BONG BÓNG TIN NHẮN CỦA MÌNH (Màu Xanh gradient) */
+.msg-me { align-items: flex-end; }
+.msg-me .msg-bubble { 
+    background: linear-gradient(135deg, #0084ff 0%, #0066ff 100%); 
+    color: #ffffff; 
+    border-radius: 20px 20px 4px 20px; 
+    padding: 10px 16px; font-size: 14.5px; line-height: 1.4; 
+    box-shadow: 0 2px 6px rgba(0, 132, 255, 0.25); 
+    display: inline-block; word-wrap: break-word;
+}
+.msg-time { font-size: 11px; color: #8c939d; margin-top: 4px; font-weight: 500; padding: 0 4px; }
+
+/* KHU VỰC NHẬP TIN NHẮN DƯỚI ĐÁY */
+.chat-input-area { 
+    flex-shrink: 0 !important; background: #fff !important; 
+    padding: 14px 20px !important; border-top: 1px solid #e4e6eb; z-index: 10; 
+}
+.chat-input-wrapper {
+    display: flex; align-items: center; gap: 10px;
+    background: #f0f2f5; /* Nền xám nhạt như ô tìm kiếm */
+    border-radius: 30px; padding: 6px 6px 6px 14px;
+    transition: all 0.2s ease; border: 1px solid transparent;
+}
+.chat-input-wrapper:focus-within { background: #fff; border-color: #0084ff; box-shadow: 0 0 0 3px rgba(0,132,255,0.1); }
+.chat-input-wrapper input {
+    flex: 1; border: none !important; background: transparent !important; 
+    box-shadow: none !important; font-size: 14.5px !important; outline: none; color: #1c1e21;
+}
+.chat-icon-btn {
+    background: transparent; border: none; font-size: 20px; color: #0084ff; 
+    cursor: pointer; padding: 4px 8px; border-radius: 50%; transition: 0.2s;
+}
+.chat-icon-btn:hover { background: rgba(0,132,255,0.1); }
+.chat-send-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: #0084ff; color: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; transition: transform 0.2s;
+}
+.chat-send-btn:hover { transform: scale(1.1); background: #0066ff; }
+
+/* =========================================
+   PHỐI MÀU NỀN CHUẨN ZALO TỪNG MILIMET
+   ========================================= */
+
+/* 1. Đổi màu nền khu vực đổ tin nhắn thành màu Xanh Xám đặc trưng Zalo */
+#chat-body, #chat-messages {
+    background-color: #e2e9f1 !important; 
+}
+
+/* 2. Ép rãnh của thanh cuộn (scrollbar) tiệp màu với nền Zalo cho đồng bộ */
+#chat-body::-webkit-scrollbar-track, #chat-messages::-webkit-scrollbar-track {
+    background-color: #e2e9f1 !important;
+}
+
+/* 3. Phủ màu Trắng tinh khôi cho Header (Tên) và Footer (Ô gõ chữ) để tạo độ sắc nét */
+.msg-window-head, .chat-input-area {
+    background-color: #ffffff !important;
+}
+
+.msg-window-head { 
+    border-bottom: 1px solid #d6dbe1 !important;
+    display: flex !important;        /* ← thêm dòng này */
+    align-items: center !important;
+    gap: 14px !important;
+}
+
+.chat-input-area { 
+    border-top: 1px solid #d6dbe1 !important; 
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.02) !important;
+}
+/* =========================================================
+   ÉP GIAO DIỆN TEACHER THÀNH STUDENT PREMIUM (CSS ONLY)
+   ========================================================= */
+
+/* 1. HIỆU ỨNG CHUYỂN TRANG MƯỢT MÀ */
+@keyframes smoothFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+body .tab-content.active {
+    animation: smoothFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* 2. ĐỘ LẠI THẺ THỐNG KÊ (.stat-card -> Giống .stat-c) */
+body .stat-card {
+    background: var(--surface) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 16px !important; /* Bo góc 16px hiện đại */
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03) !important; /* Bóng mịn */
+    transition: all 0.35s cubic-bezier(0.215, 0.610, 0.355, 1) !important;
+    padding: 22px 24px !important;
+    position: relative;
+    overflow: hidden;
+}
+body .stat-card:hover {
+    transform: translateY(-6px) !important; /* Nhấc thẻ bay lên 6px */
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    box-shadow: 0 16px 32px -6px rgba(15, 23, 42, 0.08), 
+                0 10px 16px -6px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Thanh màu chỉ thị dọc bên trái cho Thẻ thống kê */
+body .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: transparent; transition: width 0.2s ease;
+}
+body .stat-card:hover::before { width: 6px !important; }
+body .stat-card:has(.val-blue)::before { background: var(--blue) !important; }
+body .stat-card:has(.val-green)::before { background: var(--green) !important; }
+body .stat-card:has(.val-red)::before { background: var(--red) !important; }
+/* 2b. IN HOA NHÃN TRONG THẺ THỐNG KÊ CHO GIỐNG STUDENT */
+/* 2b. IN HOA + IN ĐẬM NHÃN TRONG THẺ THỐNG KÊ CHO GIỐNG STUDENT */
+body .stat-card .lbl {
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+}
+/* 3. ĐỘ LẠI BẢNG ĐIỀU KHIỂN CHÍNH (.card-box -> Giống .panel) */
+body .card-box {
+    background: var(--surface) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: var(--r-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    transition: all 0.35s cubic-bezier(0.215, 0.610, 0.355, 1) !important;
+    padding: 24px !important;
+}
+body .card-box:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.06), 
+                0 12px 20px -8px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* 4. ĐỘ LẠI BẢNG BIỂU (.table -> Giống .tbl) */
+body .table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+body .table thead th {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--text-2) !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+    padding: 14px 18px !important;
+    background: #f8fafc !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-top: none !important;
+}
+body .table tbody td {
+    font-size: 13.5px !important;
+    padding: 16px 18px !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    color: var(--text-2) !important;
+    vertical-align: middle !important;
+    transition: background-color 0.15s ease !important;
+}
+/* Hiệu ứng sáng dòng khi rà chuột */
+body .table tbody tr:hover td {
+    background-color: var(--blue-bg) !important;
+    color: var(--primary) !important;
+}
+
+/* 5. NÂNG CẤP Ô NHẬP ĐIỂM SỐ (.score-input) */
+body .score-input {
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    color: var(--primary) !important;
+    background: #f8fafc !important;
+    border: 1px solid var(--border) !important;
+    transition: all 0.2s ease !important;
+}
+/* Hiệu ứng Glow khi Giáo viên click vào ô nhập điểm */
+body .score-input:focus {
+    background: var(--surface) !important;
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 3px var(--blue-border) !important;
+    outline: none !important;
+}
+
+/* 6. NÂNG CẤP CÁC NÚT BẤM VÀ BỘ LỌC TÌM KIẾM */
+body .btn-outline {
+    border-radius: var(--r-sm) !important;
+    box-shadow: var(--shadow-sm) !important;
+    font-weight: 700 !important;
+    padding: 8px 16px !important;
+}
+body .btn-outline:hover {
+    transform: translateY(-1px) !important;
+    border-color: var(--text-3) !important;
+}
+body select.filter, body .search-wrap input {
+    border-radius: var(--r-sm) !important;
+    background: #f8fafc !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--border) !important;
+    transition: 0.2s ease !important;
+}
+body select.filter:focus, body .search-wrap input:focus {
+    background: #ffffff !important;
+    border-color: var(--blue) !important;
+}
+
+/* 7. BADGES & ALERT HIỆN ĐẠI (Theo chuẩn bo tròn Pill) */
+body .badge-pill, body .badge {
+    border-radius: 9999px !important; /* Bo tròn hoàn toàn */
+    padding: 4px 12px !important;
+    font-weight: 700 !important;
+}
+body .alert-info, body .alert-warn {
+    border-radius: var(--r) !important;
+    box-shadow: var(--shadow-sm) !important;
+    border-width: 1px !important;
+}
+
+/* --- SỬA LỖI ICON BỊ SÁT CHỮ TRÊN SIDEBAR --- */
+.sidebar .nav-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;       /* Tạo khoảng cách thông thoáng 12px cố định giữa Icon và Chữ */
+    padding: 12px 20px !important; /* Tăng khoảng đệm xung quanh nút menu để nhìn cân đối */
+}
+
+.sidebar .nav-link i {
+    margin-right: 0 !important; /* Xóa margin cũ nếu có để dùng gap cho chuẩn */
+    font-size: 1.25rem !important; /* Đảm bảo kích thước icon luôn đồng nhất và rõ nét */
+    flex-shrink: 0 !important;   /* Ngăn không cho icon bị bóp méo khi co giãn thanh menu */
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important;      /* Khóa cứng chiều rộng khu vực icon để khi thu gọn các icon thẳng hàng tăm tắp */
+}
+
+/* Khoảng cách cho các Badge thông báo số lượng ở góc phải không bị dính */
+.sidebar .nav-link .badge {
+    margin-left: auto !important; /* Đẩy badge về rìa bên phải */
+}
+/* =========================================
+   HIỆU ỨNG NÚT TRẢ LỜI TIN NHẮN (ZALO STYLE)
+   ========================================= */
+.msg-row .reply-btn { opacity: 0; transform: translateX(10px); transition: all 0.2s ease; }
+.msg-row.them .reply-btn { transform: translateX(-10px); }
+.msg-row:hover .reply-btn { opacity: 1; transform: translateX(0); }
+.msg-row .reply-btn:hover { color: #3b82f6 !important; background: rgba(59, 130, 246, 0.1); border-radius: 50%; }
+/* Avatar header chat — viền màu nổi bật */
+#chat-avatar {
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59,130,246,.3) !important;
+    flex-shrink: 0 !important;
+}
+.btn-outline {
+    border-radius: 10px !important;
+    padding: 9px 18px !important;
+    font-size: 13px !important;
+    border-color: #cbd5e1 !important;
+}
+.btn-outline:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+}
+/* ━━━ USER TOPBAR PREMIUM ━━━ */
+.topbar .dropdown > a {
+    background: linear-gradient(135deg, #eff6ff, #e0e7ff) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 50px !important;
+    padding: 5px 16px 5px 5px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1) !important;
+}
+
+.topbar .dropdown > a:hover {
+    background: linear-gradient(135deg, #dbeafe, #e0e7ff) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.2) !important;
+    transform: translateY(-2px) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+.topbar .dropdown > a img {
+    width: 36px !important;
+    height: 36px !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    transition: all 0.3s ease !important;
+}
+
+.topbar .dropdown > a:hover img {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3) !important;
+    transform: scale(1.05) !important;
+}
+
+.topbar .dropdown > a span {
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+/* ━━━ ICON CHO STAT-CARD ━━━ */
+.stat-card { position: relative; }
+.card-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.card-icon.icon-blue  { background: #eff6ff; color: #3b82f6; }
+.card-icon.icon-green { background: #f0fdf4; color: #16a34a; }
+.card-icon.icon-red   { background: #fef2f2; color: #dc2626; }
+#cusc-global-loader {
+    position: fixed; inset: 0;
+    background: rgba(10, 15, 30, 0.75);
+    backdrop-filter: blur(10px);
+    z-index: 9999999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(1.04);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+#cusc-global-loader.active { opacity: 1; transform: scale(1); }
+
+.loader-content { display: flex; flex-direction: column; align-items: center; }
+
+.loader-ring-wrap { position: relative; width: 84px; height: 84px; }
+.loader-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.loader-ring-bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 6; }
+.loader-ring-fg {
+    fill: none; stroke: url(#loaderGradient); stroke-width: 6; stroke-linecap: round;
+    stroke-dasharray: 264; stroke-dashoffset: 200;
+    animation: ringSpin 1.1s cubic-bezier(0.65,0,0.35,1) infinite;
+    transform-origin: center;
+}
+@keyframes ringSpin {
+    0%   { stroke-dashoffset: 264; transform: rotate(0deg); }
+    50%  { stroke-dashoffset: 60;  transform: rotate(180deg); }
+    100% { stroke-dashoffset: 264; transform: rotate(360deg); }
+}
+.loader-logo {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #ffffff;
+    object-fit: contain;
+    padding: 8px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    animation: logoPulse 1.6s ease-in-out infinite;
+}
+@keyframes logoPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50%      { transform: translate(-50%, -50%) scale(1.08); }
+}
+.loader-text {
+    margin-top: 22px; color: #fff; font-weight: 600; font-size: 14.5px; letter-spacing: 0.3px;
+}
+.loader-dots { display: flex; gap: 5px; margin-top: 8px; }
+.loader-dots span {
+    width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;
+    animation: dotBounce 1.2s ease-in-out infinite;
+}
+.loader-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loader-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dotBounce {
+    0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+    40%           { opacity: 1;   transform: translateY(-4px); }
+}

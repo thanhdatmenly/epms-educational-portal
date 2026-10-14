@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Hệ thống ePMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="login-left">
+        <!-- ===== TRANG TRÍ ĐỘNG: mây + hạt sáng + cú bay (chỉ là decoration, không ảnh hưởng chức năng) ===== -->
+        <div class="cloud cloud-a"></div>
+        <div class="cloud cloud-b"></div>
+        <div class="cloud cloud-c"></div>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+
+        <div class="owl-fly" aria-hidden="true">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- cánh trái -->
+                <g class="wing left">
+                    <ellipse cx="28" cy="48" rx="16" ry="22" fill="#2f4d73"/>
+                </g>
+                <!-- cánh phải -->
+                <g class="wing right">
+                    <ellipse cx="72" cy="48" rx="16" ry="22" fill="#2f4d73"/>
+                </g>
+                <!-- thân -->
+                <ellipse cx="50" cy="55" rx="22" ry="26" fill="#5b7ea3"/>
+                <!-- bụng sáng -->
+                <ellipse cx="50" cy="62" rx="13" ry="15" fill="#eef6ff"/>
+                <!-- đầu -->
+                <circle cx="50" cy="34" r="20" fill="#5b7ea3"/>
+                <!-- tai -->
+                <path d="M34 22 L38 8 L44 24 Z" fill="#2f4d73"/>
+                <path d="M66 22 L62 8 L56 24 Z" fill="#2f4d73"/>
+                <!-- mắt -->
+                <circle cx="42" cy="33" r="7" fill="#fff"/>
+                <circle cx="58" cy="33" r="7" fill="#fff"/>
+                <circle cx="42" cy="33" r="3.2" fill="#16294a"/>
+                <circle cx="58" cy="33" r="3.2" fill="#16294a"/>
+                <!-- mỏ -->
+                <path d="M47 40 L53 40 L50 46 Z" fill="#f6c453"/>
+                <!-- mũ tốt nghiệp nhỏ -->
+                <rect x="36" y="14" width="28" height="4" rx="1" fill="#16294a"/>
+                <rect x="48" y="10" width="4" height="6" fill="#16294a"/>
+                <circle cx="50" cy="9" r="2.6" fill="#f6c453"/>
+            </svg>
+        </div>
+
+<div class="brand-logo" style="gap: 12px; align-items: center; display: flex;">
+    <!-- Đã bỏ background-color và border-radius -->
+    <img src="{% static 'images/CUSC Logo Series.png' %}" 
+         alt="CUSC Logo" 
+         style="height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.9)) drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.6));">
+    <span style="font-size: 36px; font-weight: 800; letter-spacing: 1px; color: #ffffff;"></span>
+</div>
+        <div class="brand-text">
+            <h2>Hệ thống quản lý<br>Giáo dục thông minh</h2>
+            <p>Cổng thông tin điện tử kết nối toàn diện giữa Nhà trường, Giáo viên, Học sinh và Phụ huynh.</p>
+        </div>
+        <div style="font-size: 12px; opacity: 0.7; position: relative; z-index: 3;">&copy; 2026 CUSCET Portal System</div>
+    </div>
+
+    <div class="login-right">
+        <div class="status-bar">
+            <span class="status-dot"></span>
+            <span>Hệ thống đang hoạt động bình thường</span>
+        </div>
+
+        <h3 class="login-title">Chào mừng trở lại 👋</h3>
+        <p class="login-sub">Chọn vai trò để tiếp tục đăng nhập</p>
+
+        <div class="role-tabs">
+            <button id="btn-hs" class="tab-btn active" onclick="switchRole('hs', this)">
+                <i class="fa-solid fa-user-graduate"></i>
+                <span>Học sinh</span>
+            </button>
+            <button id="btn-ph" class="tab-btn" onclick="switchRole('ph', this)">
+                <i class="fa-solid fa-users"></i>
+                <span>Phụ huynh</span>
+            </button>
+            <button id="btn-gv" class="tab-btn" onclick="switchRole('gv', this)">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span>Giáo viên</span>
+            </button>
+        </div>
+
+        {% if messages %}
+            <div id="thong-bao-box" style="margin-bottom: 24px; transition: opacity 0.5s ease-out;">
+                {% for message in messages %}
+                    <div style="background-color: #fee2e2; color: #dc2626; padding: 13px; border-radius: 12px; text-align: center; font-weight: 700; border: 1px solid #f87171; font-size: 14px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.05);">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <script>
+                setTimeout(function() {
+                    const thongBao = document.getElementById('thong-bao-box');
+                    if (thongBao) {
+                        thongBao.style.opacity = '0';
+                        setTimeout(function() { thongBao.style.display = 'none'; }, 500); 
+                    }
+                }, 2500);
+            </script>
+        {% endif %}
+
+        <form id="form-hs" class="form-area active" method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="loai_form" value="hs">
+            
+            <div class="input-group">
+                <label>Mã Học Sinh</label>
+                <div class="input-box">
+                    <i class="fa-regular fa-id-badge"></i>
+                    <input type="text" name="username" placeholder="VD: HS2024001" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <div class="btn-content">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Đăng nhập vào cổng học sinh</span>
+                </div>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <form id="form-ph" class="form-area" method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="loai_form" value="ph">
+            
+            <div class="input-group">
+                <label>Số điện thoại</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-phone"></i>
+                    <input type="text" name="username" placeholder="VD: 0901234567" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <div class="btn-content">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Đăng nhập vào cổng phụ huynh</span>
+                </div>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <form id="form-gv" class="form-area" method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="loai_form" value="gv">
+            
+            <div class="input-group">
+                <label>Email hoặc Mã Giáo Viên</label>
+                <div class="input-box">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="text" name="username" placeholder="VD: gv01" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <div class="btn-content">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Đăng nhập vào cổng giáo viên</span>
+                </div>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/login.js' %}"></script>
+<script>
+    // ===== HỆ THỐNG ĐỒNG BỘ GIỮ TAB VAI TRÒ =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabCu = sessionStorage.getItem('tabDangNhap');
+        if (tabCu) {
+            const nutTab = document.getElementById('btn-' + tabCu);
+            if (nutTab) { nutTab.click(); }
+        }
+
+        const forms = document.querySelectorAll('form.form-area');
+        forms.forEach(f => {
+            f.addEventListener('submit', function() {
+                const loai = this.querySelector('input[name="loai_form"]').value;
+                sessionStorage.setItem('tabDangNhap', loai);
+                const btn = this.querySelector('.btn-submit');
+                btn.disabled = true;
+                btn.querySelector('span').textContent = 'Đang đăng nhập...';
+            });
+        });
+    });
+</script>
+</body>
+</html>

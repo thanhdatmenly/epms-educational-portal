@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ePMS System{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="wrapper">
+        
+<aside class="sidebar">
+    <div class="sidebar-brand d-flex align-items-center justify-content-start px-3 py-2" style="height: 70px; overflow: hidden;">
+        <a href="javascript:void(0)" onclick="veTrangChu()" class="brand-logo-wrapper text-decoration-none d-flex align-items-center gap-2">
+            <!-- Khung tròn trắng bao quanh logo nội bộ , chinh to lớn logo -->
+            <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
+                <img src="{% static 'images/CUSC Logo Series.png' %}" 
+                     alt="CUSC Logo" 
+                     style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            
+            <!-- Phần chữ nổi bật trên nền Sidebar tối -->
+            <div class="brand-text d-flex flex-column text-start">
+                <span class="brand-title fw-bold text-white lh-1" style="font-size: 16px; letter-spacing: 0.5px;">CUSC</span>
+                <span class="brand-subtitle text-white-50 lh-1 mt-1" style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase;">Portal System</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="sidebar-nav">
+        {% block sidebar_menu %}
+        {% endblock %}
+    </div>
+</aside>
+
+        <div class="main-wrapper">
+            
+            <header class="topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button id="sidebarToggleBtn" class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Thu gọn / Mở rộng menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h4 class="mb-0 fw-bold text-dark">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </h4>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" data-bs-toggle="dropdown">
+                            <img src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff" width="40" height="40" class="rounded-circle me-2">
+                            <span class="fw-medium">
+                                {% block user_name %}Tài khoản{% endblock %}
+                            </span>
+                        </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3">
+                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2 text-muted"></i> Hồ sơ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'dang_xuat' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li>
+                            </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% block content %}
+                {% endblock %}
+            </main>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ── NÚT TOGGLE SIDEBAR ── */
+        .sidebar-toggle-btn {
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #64748b;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        .sidebar-toggle-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .sidebar-toggle-btn:active {
+            transform: scale(0.92);
+        }
+        /* Xoay icon khi thu gọn */
+        .wrapper.collapsed .sidebar-toggle-btn i {
+            transform: rotate(90deg);
+        }
+        .sidebar-toggle-btn i {
+            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        }
+    </style>
+
+    <script>
+        // =========================================================
+        // 1. GHI NHỚ TRẠNG THÁI THU/MỞ CỦA THANH MENU (SIDEBAR)
+        // =========================================================
+        function toggleSidebar() {
+            document.querySelector('.wrapper').classList.toggle('collapsed');
+            const isCollapsed = document.querySelector('.wrapper').classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+        function veTrangChu() {
+            const path = window.location.pathname;
+            sessionStorage.removeItem('ePMS_activeTab_' + path);
+            const tabDauTien = document.querySelector('.sidebar-nav .nav-link');
+            if (tabDauTien) {
+                tabDauTien.click();
+            }
+        }
+
+        (function () {
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                document.querySelector('.wrapper').classList.add('collapsed');
+            }
+        })();
+
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    <script>
+        // =========================================================
+        // 2. HỆ THỐNG GHI NHỚ TAB THÔNG MINH (BẢN V2 - SIÊU TỐC)
+        // =========================================================
+        (function() {
+            const currentPath = window.location.pathname; 
+            const savedTab = sessionStorage.getItem('ePMS_activeTab_' + currentPath);
+
+            // A. MỞ LẠI TAB CŨ NGAY LẬP TỨC TRƯỚC KHI TRÌNH DUYỆT VẼ MÀN HÌNH
+            if (savedTab) {
+                const targetBtn = document.querySelector(`.nav-link[onclick*="'${savedTab}'"]`) || 
+                                  document.querySelector(`.nav-link[onclick*='"${savedTab}"']`);
+                if (targetBtn) {
+                    // Không dùng setTimeout, Không chờ DOMContentLoaded -> Kích hoạt ngay!
+                    targetBtn.click(); 
+                }
+            }
+
+            // B. GẮN CẢM BIẾN LƯU VẾT KHI CLICK
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const onclickStr = this.getAttribute('onclick');
+                    if (onclickStr) {
+                        const match = onclickStr.match(/['"]([^'"]+)['"]/);
+                        if (match && match[1]) {
+                            sessionStorage.setItem('ePMS_activeTab_' + currentPath, match[1]);
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,923 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ePMS — Cổng Học sinh{% endblock %}
+{% block page_title %}Kết quả học tập{% endblock %}
+{% block user_name %}{{ hs.ho_ten }} ({{ hs.lop_hoc.ten_lop|default:"Chưa xếp lớp" }}){% endblock %}
+
+{% block extra_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/student.css' %}">
+{% endblock %}
+
+{% block sidebar_menu %}
+    <!-- Thêm class sidebar-header-label để ẩn tiêu đề khi thu gọn -->
+    <div class="sidebar-header-label mt-3 mb-2 px-3 text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 1px; opacity: 0.6;">Học tập</div>
+    
+    <div class="nav-item">
+        <a href="#" class="nav-link active" onclick="switchPage('diem', this)">
+            <i class="ti ti-chart-bar fs-5"></i> 
+            <span class="nav-text">Kết quả học tập</span>
+        </a>
+    </div>
+
+    <div class="sidebar-header-label mt-4 mb-2 px-3 text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 1px; opacity: 0.6;">Cá nhân</div>
+    
+    <div class="nav-item">
+        <a href="#" class="nav-link" onclick="switchPage('chuyen-can', this)">
+            <i class="ti ti-clock-check fs-5"></i> 
+            <span class="nav-text">Chuyên cần</span>
+        </a>
+    </div>
+    
+    <div class="nav-item">
+        <a href="#" class="nav-link" onclick="switchPage('thong-bao', this)">
+            <i class="ti ti-bell fs-5"></i> 
+            <span class="nav-text">Thông báo</span>
+            
+            {% if danh_sach_thong_bao|length > 0 %}
+                <span id="badge-thong-bao" class="badge bg-danger ms-auto rounded-pill" data-tong="{{ danh_sach_thong_bao|length }}">
+                    {{ danh_sach_thong_bao|length }}
+                </span>
+            {% endif %}
+            
+        </a>
+    </div>
+    
+    <div class="nav-item">
+        <a href="#" class="nav-link" onclick="switchPage('tai-khoan', this)">
+            <i class="ti ti-user-circle fs-5"></i> 
+            <span class="nav-text">Tài khoản</span>
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="content" style="font-family: 'Nunito', sans-serif;">
+
+    <div class="page active" id="page-diem">
+        <div class="grid-2">
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">ĐIỂM TRUNG BÌNH TỔNG QUAN</div>
+                    <div class="s-icon" style="background:var(--blue-bg); color:var(--blue);"><i class="ti ti-chart-line"></i></div>
+                </div>
+                <div class="s-value" id="the-dtb-tong" style="color:var(--text-3);">—</div>
+                <div id="tag-hl-tong"><span class="badge" style="background:#f1f5f9; color:#64748b;">Chưa có điểm</span></div>
+            </div>
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">HANH KIỂM ĐÁNH GIÁ</div>
+                    <div class="s-icon" style="background:var(--green-bg); color:var(--green);"><i class="ti ti-mood-smile"></i></div>
+                </div>
+                <div class="s-value" id="the-hanh-kiem" style="color:var(--green); font-size:24px; padding:2px 0;">—</div>
+                <div><span class="badge bg-green" id="tag-hanh-kiem">Đánh giá bởi GVCN</span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="ph">
+                <div class="ph-left">
+                    <div class="ph-icon blue"><i class="ti ti-table"></i></div>
+                    <div>
+                        <div class="ph-title">Bảng điểm chi tiết môn học</div>
+                        <div class="ph-sub" id="bang-diem-sub">Học kỳ 1 · 2024–2025 · Công thức TT22/2021</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <select id="chon-hoc-ky" onchange="chuyenHocKy()" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--r-sm); font-weight: 700; color: var(--accent); background: var(--accent-light); cursor: pointer; outline: none; font-size: 13px;">
+                        <option value="HK1" selected>Học kỳ 1</option>
+                        <option value="HK2">Học kỳ 2</option>
+                        <option value="CN">Cả năm</option>
+                    </select>
+                    <button class="btn-outline" id="btn-xuat-diem-excel" onclick="xuatBangDiemExcel()">
+                        <i class="ti ti-file-spreadsheet"></i> Xuất Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="tbl" style="table-layout: fixed; width: 100%; min-width: 800px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 22%;">Môn học</th>
+                            <th class="center col-chitiet" style="width: 9%;">TX1</th>
+                            <th class="center col-chitiet" style="width: 9%;">TX2</th>
+                            <th class="center col-chitiet" style="width: 9%;">TX3</th>
+                            <th class="center col-chitiet" style="width: 10%;">Giữa kỳ</th>
+                            <th class="center col-chitiet" style="width: 10%;">Cuối kỳ</th>
+                            
+                            <th class="center col-dtb1" style="width: 11%;">ĐTB HK1</th>
+                            <th class="center col-dtb2" style="width: 11%; display: none;">ĐTB HK2</th>
+                            <th class="center col-dtbcn" style="width: 12%; display: none; color: #6366f1;">ĐTB Cả năm</th>
+                            
+                            <th class="center col-xeploai" style="width: 13%;">Học Lực</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in danh_sach_diem %}
+                        <tr class="score-row"
+                            data-hk1-tx1="{{ item.hk1.diem_tx1|default_if_none:'' }}" 
+                            data-hk1-tx2="{{ item.hk1.diem_tx2|default_if_none:'' }}"
+                            data-hk1-tx3="{{ item.hk1.diem_tx3|default_if_none:'' }}" 
+                            data-hk1-gk="{{ item.hk1.diem_gk|default_if_none:'' }}"
+                            data-hk1-ck="{{ item.hk1.diem_ck|default_if_none:'' }}"
+                            data-hk1-hanhkiem="{{ item.hk1.hanh_kiem|default_if_none:'' }}"
+                            
+                            data-hk2-tx1="{{ item.hk2.diem_tx1|default_if_none:'' }}" 
+                            data-hk2-tx2="{{ item.hk2.diem_tx2|default_if_none:'' }}"
+                            data-hk2-tx3="{{ item.hk2.diem_tx3|default_if_none:'' }}" 
+                            data-hk2-gk="{{ item.hk2.diem_gk|default_if_none:'' }}"
+                            data-hk2-ck="{{ item.hk2.diem_ck|default_if_none:'' }}"
+                            data-hk2-hanhkiem="{{ item.hk2.hanh_kiem|default_if_none:'' }}">
+                            
+                            <td style="white-space: normal; line-height: 1.5; color: var(--primary); font-weight: 600;">{{ item.mon_hoc.ten_mon_hoc }}</td>
+                            
+                            <td class="center col-chitiet cell-tx1"><span class="score-chip">—</span></td>
+                            <td class="center col-chitiet cell-tx2"><span class="score-chip">—</span></td>
+                            <td class="center col-chitiet cell-tx3"><span class="score-chip">—</span></td>
+                            <td class="center col-chitiet cell-gk"><span class="score-chip">—</span></td>
+                            <td class="center col-chitiet cell-ck"><span class="score-chip">—</span></td>
+                            
+                            <td class="center fw-bold col-dtb1 cell-dtb1" style="font-size: 15px; font-weight: 700;">—</td>
+                            <td class="center fw-bold col-dtb2 cell-dtb2" style="font-size: 15px; font-weight: 700; display: none;">—</td>
+                            <td class="center fw-bold col-dtbcn cell-dtbcn" style="font-size: 16px; font-weight: 800; display: none; color: #6366f1;">—</td>
+                            
+                            <td class="center col-xeploai cell-xeploai"><span style="color: var(--text-3);">—</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="10" class="center" style="padding: 40px; color: var(--text-3); font-size: 14px;">Hiện tại chưa có dữ liệu môn học nào được cập nhật.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="padding:16px 24px; border-top:1px solid var(--border-light); background:#f8fafc; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:36px; height:36px; border-radius:var(--r-sm); background:var(--amber-bg); display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--amber);">
+                        <i class="ti ti-award"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:13px; font-weight:700; color:var(--primary);">Danh hiệu học kỳ đạt được</div>
+                        <div style="font-size:11.5px; color:var(--text-3); margin-top:2px;">Đánh giá dựa theo quy chế Thông tư 22/2021/TT-BGDĐT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="page-chuyen-can">
+        <div class="sec-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="sec-title">Theo dõi chuyên cần</div>
+                <div class="sec-sub">Dữ liệu cập nhật theo từng học kỳ</div>
+            </div>
+            <div>
+                <select id="chon-hk-chuyen-can" onchange="chuyenHocKyChuyenCan()" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; color: #b45309; background: #fffbeb; cursor: pointer; outline: none;">
+                    <option value="HK1" selected>Học kỳ 1</option>
+                    <option value="HK2">Học kỳ 2</option>
+                    <option value="CN">Cả năm</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="att-grid" id="box-so-lieu-cc"
+             data-hk1-tong="{{ cc_hk1.tong|default:0 }}" 
+             data-hk1-comat="{{ cc_hk1.comat|default:0 }}" 
+             data-hk1-vcp="{{ cc_hk1.vcp|default:0 }}" 
+             data-hk1-vkp="{{ cc_hk1.vkp|default:0 }}"
+             
+             data-hk2-tong="{{ cc_hk2.tong|default:0 }}" 
+             data-hk2-comat="{{ cc_hk2.comat|default:0 }}" 
+             data-hk2-vcp="{{ cc_hk2.vcp|default:0 }}" 
+             data-hk2-vkp="{{ cc_hk2.vkp|default:0 }}"
+             
+             data-cn-tong="{{ cc_cn.tong|default:0 }}" 
+             data-cn-comat="{{ cc_cn.comat|default:0 }}" 
+             data-cn-vcp="{{ cc_cn.vcp|default:0 }}" 
+             data-cn-vkp="{{ cc_cn.vkp|default:0 }}">
+            
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">TỔNG BUỔI HỌC</div>
+                    <div class="s-icon" style="background:var(--blue-bg); color:var(--blue);"><i class="ti ti-calendar-stats"></i></div>
+                </div>
+                <div class="s-value" id="cc-tong-buoi" style="color:var(--blue);">0</div>
+            </div>
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">CÓ MẶT</div>
+                    <div class="s-icon" style="background:#dcfce3; color:#166534;"><i class="ti ti-user-check"></i></div>
+                </div>
+                <div class="s-value" id="cc-co-mat" style="color:#166534;">0</div>
+            </div>
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">VẮNG CÓ PHÉP</div>
+                    <div class="s-icon" style="background:var(--green-bg); color:var(--green);"><i class="ti ti-circle-check"></i></div>
+                </div>
+                <div class="s-value" id="cc-vang-cp" style="color:var(--green);">0</div>
+            </div>
+            <div class="stat-c">
+                <div class="s-top">
+                    <div class="s-label">VẮNG KHÔNG PHÉP</div>
+                    <div class="s-icon" style="background:var(--red-bg); color:var(--red);"><i class="ti ti-circle-x"></i></div>
+                </div>
+                <div class="s-value" id="cc-vang-kp" style="color:var(--red);">0</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="ph">
+                <div class="ph-left">
+                    <div class="ph-icon blue"><i class="ti ti-notebook"></i></div>
+                    <div>
+                        <div class="ph-title">Lịch sử và chi tiết nghỉ học</div>
+                        <div class="ph-sub">Dữ liệu cập nhật thời gian thực từ Nhà trường và Phụ huynh</div>
+                    </div>
+                </div>
+            </div>
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Ngày nghỉ</th>
+                        <th>Phân loại vắng</th>
+                        <th>Lý do ghi nhận</th>
+                        <th>Ghi chú phản hồi</th>
+                    </tr>
+                </thead>
+               <tbody>
+                    {% for item in lich_su_chi_tiet %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ item.ngay|date:"d/m/Y" }}</td>
+                        
+                        <td>
+                            {% if item.loai == 'Vang_CP' %}
+                                <span class="badge bg-green">Có phép</span>
+                            {% else %}
+                                <span class="badge bg-red">Không phép</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td {% if item.ly_do == 'Chưa rõ lý do' %}style="color:var(--red); font-weight: 600;"{% endif %}>
+                            {{ item.ly_do }}
+                        </td>
+                        
+                        <td style="color:var(--text-3); font-size: 13px;">{{ item.ghi_chu }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px; color: var(--text-3);">
+                            <i class="ti ti-mood-smile" style="font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.5;"></i>
+                            Học sinh chuyên cần, chưa ghi nhận ngày vắng mặt nào!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="page" id="page-thong-bao">
+        <div class="sec-header">
+            <div>
+                <div class="sec-title">Thông báo từ hệ thống</div>
+                <div class="sec-sub">Bản tin từ Ban giám hiệu và Giáo viên chủ nhiệm lớp</div>
+            </div>
+            <button class="btn-outline" onclick="danhDauDaDoc()"><i class="ti ti-checks"></i>Đánh dấu tất cả đã đọc</button>
+        </div>
+
+        <div class="panel">
+            <div class="pb" style="padding-top:8px; padding-bottom:8px;">
+                {% for tb in danh_sach_thong_bao %}
+                <div class="notif-item">
+                    {% if tb.loai_thong_bao == 'Quan_Trong' %}
+                        <div class="n-ico red"><i class="ti ti-alert-triangle"></i></div>
+                    {% else %}
+                        <div class="n-ico blue"><i class="ti ti-bell-ringing"></i></div>
+                    {% endif %}
+                    
+                    <div class="n-body" style="flex:1;">
+                        <div class="n-title">{{ tb.tieu_de }}</div>
+                        <div class="n-sub">
+                            <strong style="color: var(--primary);">GVCN {{ tb.giao_vien.ho_ten }}</strong> · <span style="color: var(--text-3);">{{ tb.ngay_gui|date:"H:i - d/m/Y" }}</span> <br>
+                            <span style="display:inline-block; margin-top:4px; color:var(--text-2);">{{ tb.noi_dung }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="n-tag">
+                        {% if tb.loai_thong_bao == 'Quan_Trong' %}
+                            <span class="badge bg-red">Quan trọng</span>
+                        {% else %}
+                            <span class="badge bg-blue">Tin thường</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div style="padding: 48px; text-align: center; color: var(--text-3);">
+                    <i class="ti ti-bell-z" style="font-size: 36px; opacity: 0.4; margin-bottom: 12px; display: block;"></i>
+                    Hiện tại lớp học chưa có thông báo mới nào.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="page-tai-khoan">
+        <div class="sec-header">
+            <div>
+                <div class="sec-title">Quản lý tài khoản</div>
+                <div class="sec-sub">Thông tin hồ sơ cá nhân và cài đặt bảo mật</div>
+            </div>
+        </div>
+
+        <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch;">  
+            <!-- KHỐI 1: LÝ LỊCH HỌC SINH -->
+            <div class="panel" style="display: flex; flex-direction: column; min-width: 0;">
+                <div class="profile-card">
+                    <div class="profile-avatar">{{ hs.ho_ten|make_list|first }}</div>
+                    <div class="profile-info">
+                        <div class="pi-name">{{ hs.ho_ten }}</div>
+                        <div class="pi-role">Học sinh chính thức · Lớp {{ hs.lop_hoc.ten_lop|default:"Chưa xếp lớp" }}</div>
+                    </div>
+                </div>
+                
+                <div class="ph" style="border-top:none; border-bottom:1px solid var(--border-light);">
+                    <div class="ph-left">
+                        <div class="ph-icon blue"><i class="ti ti-user-circle"></i></div>
+                        <div class="ph-title">Thông tin lý lịch học sinh</div>
+                    </div>
+                    <button class="btn-outline" onclick="toggleChiTietLyLich()">Xem chi tiết</button>
+                </div>
+                <div id="chi-tiet-ly-lich" style="display:none;">
+                <table class="tbl" style="table-layout: fixed; width: 100%;">
+                    <colgroup>
+                        <col style="width: 38%;">
+                        <col style="width: 62%;">
+                    </colgroup>
+                    <tbody>
+                        <tr><td style="color:var(--text-3);">Mã định danh HS</td><td style="word-wrap: break-word;"><strong style="color: var(--primary);">{{ hs.ma_hoc_sinh }}</strong></td></tr>
+                        <tr><td style="color:var(--text-3);">Ngày sinh</td><td style="font-weight: 500; word-wrap: break-word;">{{ hs.ngay_sinh|date:"d/m/Y"|default:"<span style='color:#94a3b8; font-style:italic;'>Chưa cập nhật</span>" }}</td></tr>
+                        <tr><td style="color:var(--text-3);">Giới tính</td><td style="font-weight: 500; word-wrap: break-word;">{{ hs.gioi_tinh|default:"<span style='color:#94a3b8; font-style:italic;'>Chưa cập nhật</span>" }}</td></tr>
+                        <tr><td style="color:var(--text-3);">Địa chỉ / Quê quán</td><td style="font-weight: 500; word-wrap: break-word;">{{ hs.dia_chi|default:"<span style='color:#94a3b8; font-style:italic;'>Chưa cập nhật</span>" }}</td></tr> 
+                        <tr><td style="color:var(--text-3);">Địa chỉ Email</td><td style="word-wrap: break-word;">{{ hs.tai_khoan.email|default:"Chưa cập nhật tài khoản email" }}</td></tr>
+                        <tr><td style="color:var(--text-3);">Lớp hành chính</td><td><span class="badge bg-blue">{{ hs.lop_hoc.ten_lop|default:"Chưa xếp lớp" }}</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+            <!-- KHỐI 2: BẢO MẬT & TRẠNG THÁI -->
+            <div class="panel"  style="height:100%; margin-top: 0; display: flex; flex-direction: column; min-width: 0;">
+                <div class="ph" style="border-bottom:1px solid var(--border-light);">
+                    <div class="ph-left">
+                        <div class="ph-icon amber"><i class="ti ti-lock"></i></div>
+                        <div class="ph-title">Bảo mật & Trạng thái tài khoản</div>
+                    </div>
+                </div>
+                
+                <table class="tbl" style="table-layout: fixed; width: 100%;">
+                    <colgroup>
+                        <col style="width: 38%;">
+                        <col style="width: 62%;">
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td style="color:var(--text-3);">Tên đăng nhập</td>
+                            <td style="word-wrap: break-word;"><code style="font-size:13px; font-weight:600;">{{ hs.tai_khoan.username }}</code></td>
+                        </tr>
+                        <tr>
+                            <td style="color:var(--text-3);">Trạng thái quyền</td>
+                            <td>
+                                {% if hs.tai_khoan.is_active %}
+                                <span class="badge bg-green"><span style="width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:4px;"></span>Đang hoạt động</span>
+                                {% else %}
+                                <span class="badge bg-red">Đã khóa tài khoản</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> 
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/student.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        tinhToanToanBoDiem(); 
+        chuyenHocKy(); 
+    });
+
+    function tinhToanToanBoDiem() {
+        const rows = document.querySelectorAll('.score-row');
+        rows.forEach(row => {
+            const h1_tx1 = parseFloat(row.dataset.hk1Tx1), h1_tx2 = parseFloat(row.dataset.hk1Tx2), h1_tx3 = parseFloat(row.dataset.hk1Tx3);
+            const h1_gk = parseFloat(row.dataset.hk1Gk), h1_ck = parseFloat(row.dataset.hk1Ck);
+            let sum1 = 0, count1 = 0;
+            if(!isNaN(h1_tx1)){ sum1 += h1_tx1; count1++; } if(!isNaN(h1_tx2)){ sum1 += h1_tx2; count1++; } if(!isNaN(h1_tx3)){ sum1 += h1_tx3; count1++; }
+            let dtb1 = null;
+            if(count1 > 0 && !isNaN(h1_gk) && !isNaN(h1_ck)){
+                dtb1 = (sum1 + h1_gk*2 + h1_ck*3) / (count1 + 5);
+                row.dataset.dtbHk1 = (Math.round(dtb1 * 10) / 10).toFixed(1);
+            } else {
+                row.dataset.dtbHk1 = ''; 
+            }
+
+            const h2_tx1 = parseFloat(row.dataset.hk2Tx1), h2_tx2 = parseFloat(row.dataset.hk2Tx2), h2_tx3 = parseFloat(row.dataset.hk2Tx3);
+            const h2_gk = parseFloat(row.dataset.hk2Gk), h2_ck = parseFloat(row.dataset.hk2Ck);
+            let sum2 = 0, count2 = 0;
+            if(!isNaN(h2_tx1)){ sum2 += h2_tx1; count2++; } if(!isNaN(h2_tx2)){ sum2 += h2_tx2; count2++; } if(!isNaN(h2_tx3)){ sum2 += h2_tx3; count2++; }
+            let dtb2 = null;
+            if(count2 > 0 && !isNaN(h2_gk) && !isNaN(h2_ck)){
+                dtb2 = (sum2 + h2_gk*2 + h2_ck*3) / (count2 + 5);
+                row.dataset.dtbHk2 = (Math.round(dtb2 * 10) / 10).toFixed(1);
+            } else {
+                row.dataset.dtbHk2 = '';
+            }
+
+            if(dtb1 !== null && dtb2 !== null) {
+                let dtbCN = (dtb1 + dtb2 * 2) / 3;
+                row.dataset.dtbCn = (Math.round(dtbCN * 10) / 10).toFixed(1);
+            } else {
+                row.dataset.dtbCn = '';
+            }
+        });
+    }
+
+    function bomDiemChiTiet(hk) {
+        document.querySelectorAll('.score-row').forEach(row => {
+            const getVal = (val) => (val && !isNaN(parseFloat(val))) ? parseFloat(val).toFixed(1) : '—';
+            
+            const cells = ['tx1', 'tx2', 'tx3', 'gk', 'ck'];
+            cells.forEach(c => {
+                const span = row.querySelector(`.cell-${c} span`);
+                const scoreVal = row.getAttribute(`data-${hk}-${c}`);
+                span.textContent = getVal(scoreVal);
+                
+                // Thêm màu sắc dynamic hiện đại trực tiếp cho các con điểm nhỏ trong bảng
+                if(scoreVal && !isNaN(parseFloat(scoreVal))) {
+                    const num = parseFloat(scoreVal);
+                    if(num >= 8.0) { span.style.background = 'var(--green-bg)'; span.style.color = 'var(--green)'; }
+                    else if(num >= 5.0) { span.style.background = 'var(--blue-bg)'; span.style.color = 'var(--blue)'; }
+                    else { span.style.background = 'var(--red-bg)'; span.style.color = 'var(--red)'; }
+                } else {
+                    span.style.background = 'var(--border-light)';
+                    span.style.color = 'var(--text-3)';
+                }
+            });
+        });
+    }
+
+    function capNhatXepLoai(row, dtb) {
+        const xlCell = row.querySelector('.cell-xeploai');
+        const dtbCell1 = row.querySelector('.cell-dtb1');
+        const dtbCell2 = row.querySelector('.cell-dtb2');
+        const dtbCellCn = row.querySelector('.cell-dtbcn');
+        
+        dtbCell1.textContent = row.dataset.dtbHk1 || '—';
+        dtbCell2.textContent = row.dataset.dtbHk2 || '—';
+        dtbCellCn.textContent = row.dataset.dtbCn || '—';
+
+        if(dtb !== null && !isNaN(dtb)) {
+            let hlText = "", hlColor = "", hlBg = "";
+            if (dtb >= 8.0) { hlText = "Tốt"; hlColor = "#16a34a"; hlBg = "#f0fdf4"; dtbCell1.style.color='var(--green)'; } 
+            else if (dtb >= 6.5) { hlText = "Khá"; hlColor = "#2563eb"; hlBg = "#eff6ff"; dtbCell1.style.color='var(--blue)';} 
+            else if (dtb >= 5.0) { hlText = "Đạt"; hlColor = "#d97706"; hlBg = "#fffbeb"; dtbCell1.style.color='var(--amber)';} 
+            else { hlText = "Chưa đạt"; hlColor = "#dc2626"; hlBg = "#fef2f2"; dtbCell1.style.color='var(--red)';}
+            xlCell.innerHTML = `<span class="badge" style="background:${hlBg}; color:${hlColor}; font-weight:700; border: 1px solid transparent;">${hlText}</span>`;
+        } else {
+            xlCell.innerHTML = '<span style="color: var(--text-3);">—</span>';
+            dtbCell1.style.color = 'var(--text-3)';
+        }
+    }
+
+    function updateTopCard(val, tagText) {
+        const theHanhKiem = document.getElementById('the-hanh-kiem');
+        const tagHanhKiem = document.getElementById('tag-hanh-kiem');
+        if(!theHanhKiem) return;
+
+        theHanhKiem.textContent = val ? val : "Chưa xét";
+        tagHanhKiem.textContent = tagText;
+
+        let color = 'var(--green)'; 
+        if(val === 'Khá') color = 'var(--blue)';
+        else if(val === 'Đạt') color = 'var(--amber)';
+        else if(val === 'Chưa đạt') color = 'var(--red)';
+        else if(!val) color = 'var(--text-3)';
+        
+        theHanhKiem.style.color = color;
+    }
+
+    function updateTopDTB(kyHoc) {
+        const theDtb = document.getElementById('the-dtb-tong');
+        const tagHl = document.getElementById('tag-hl-tong');
+        if(!theDtb || !tagHl) return;
+
+        const rows = document.querySelectorAll('.score-row');
+        if(rows.length === 0) {
+            theDtb.textContent = '—';
+            theDtb.style.color = 'var(--text-3)';
+            tagHl.innerHTML = '<span class="badge" style="background:#f1f5f9;color:#64748b;">Chưa có môn học</span>';
+            return;
+        }
+
+        let sum = 0;
+        let count = 0;
+        let isComplete = true; 
+
+        rows.forEach(row => {
+            const dtbString = row.dataset[kyHoc];
+            if (!dtbString || dtbString.trim() === '') {
+                isComplete = false; 
+            } else {
+                const val = parseFloat(dtbString);
+                if (isNaN(val)) {
+                    isComplete = false;
+                } else {
+                    sum += val;
+                    count++;
+                }
+            }
+        });
+
+        if (isComplete && count > 0) {
+            let dtbTong = sum / count;
+            dtbTong = Math.round(dtbTong * 10) / 10; 
+            theDtb.textContent = dtbTong.toFixed(1);
+
+            let hlText = "", hlColor = "", hlBg = "";
+            if (dtbTong >= 8.0) { hlText = "Học lực Tốt"; hlColor = "var(--green)"; hlBg = "var(--green-bg)"; theDtb.style.color='var(--green)'; }
+            else if (dtbTong >= 6.5) { hlText = "Học lực Khá"; hlColor = "var(--blue)"; hlBg = "var(--blue-bg)"; theDtb.style.color='var(--blue)'; }
+            else if (dtbTong >= 5.0) { hlText = "Học lực Đạt"; hlColor = "var(--amber)"; hlBg = "var(--amber-bg)"; theDtb.style.color='var(--amber)'; }
+            else { hlText = "Chưa đạt"; hlColor = "var(--red)"; hlBg = "var(--red-bg)"; theDtb.style.color='var(--red)'; }
+
+            tagHl.innerHTML = `<span class="badge" style="background:${hlBg}; color:${hlColor}; font-weight:700;">${hlText}</span>`;
+        } else {
+            theDtb.textContent = "—";
+            theDtb.style.color = "var(--text-3)";
+            tagHl.innerHTML = '<span class="badge" style="background:#f1f5f9;color:#94a3b8;">Chưa đủ điểm môn</span>';
+        }
+    }
+    function chuyenHocKyChuyenCan() {
+        const val = document.getElementById('chon-hk-chuyen-can').value;
+        const box = document.getElementById('box-so-lieu-cc');
+        
+        const lbTong = document.getElementById('cc-tong-buoi');
+        const lbCoMat = document.getElementById('cc-co-mat');
+        const lbVcp = document.getElementById('cc-vang-cp');
+        const lbVkp = document.getElementById('cc-vang-kp');
+
+        let suffix = "";
+        if (val === "HK1") suffix = "hk1";
+        else if (val === "HK2") suffix = "hk2";
+        else if (val === "CN") suffix = "cn";
+
+        box.style.opacity = 0.5;
+        setTimeout(() => {
+            lbTong.textContent = box.getAttribute(`data-${suffix}-tong`);
+            lbCoMat.textContent = box.getAttribute(`data-${suffix}-comat`);
+            lbVcp.textContent = box.getAttribute(`data-${suffix}-vcp`);
+            lbVkp.textContent = box.getAttribute(`data-${suffix}-vkp`);
+            box.style.opacity = 1;
+        }, 150);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        chuyenHocKyChuyenCan();
+    });
+    function chuyenHocKy() {
+        const val = document.getElementById('chon-hoc-ky').value;
+        const subTitle = document.getElementById('bang-diem-sub');
+        const colsChiTiet = document.querySelectorAll('.col-chitiet');
+        const colsDtb1 = document.querySelectorAll('.col-dtb1');
+        const colsDtb2 = document.querySelectorAll('.col-dtb2');
+        const colsDtbCn = document.querySelectorAll('.col-dtbcn');
+        
+        let hk1_val = "", hk2_val = "";
+        document.querySelectorAll('.score-row').forEach(row => {
+            const h1 = row.getAttribute('data-hk1-hanhkiem');
+            const h2 = row.getAttribute('data-hk2-hanhkiem');
+            if (h1 && h1.trim() !== "" && h1.trim() !== "None") hk1_val = h1.trim();
+            if (h2 && h2.trim() !== "" && h2.trim() !== "None") hk2_val = h2.trim();
+        });
+        
+        if (val === 'HK1') {
+            subTitle.innerHTML = 'Học kỳ 1 · Quy chế năm học 2024–2025 · Thông tư 22/2021';
+            colsChiTiet.forEach(el => el.style.display = ''); colsDtb1.forEach(el => el.style.display = '');
+            colsDtb2.forEach(el => el.style.display = 'none'); colsDtbCn.forEach(el => el.style.display = 'none');
+            bomDiemChiTiet('hk1');
+            document.querySelectorAll('.score-row').forEach(row => capNhatXepLoai(row, parseFloat(row.dataset.dtbHk1)));
+            updateTopCard(hk1_val, "Học kỳ 1");
+            updateTopDTB('dtbHk1');
+            
+        } else if (val === 'HK2') {
+            subTitle.innerHTML = 'Học kỳ 2 · Quy chế năm học 2024–2025 · Thông tư 22/2021';
+            colsChiTiet.forEach(el => el.style.display = ''); colsDtb1.forEach(el => el.style.display = 'none');
+            colsDtb2.forEach(el => el.style.display = ''); colsDtbCn.forEach(el => el.style.display = 'none');
+            bomDiemChiTiet('hk2');
+            document.querySelectorAll('.score-row').forEach(row => capNhatXepLoai(row, parseFloat(row.dataset.dtbHk2)));
+            updateTopCard(hk2_val, "Học kỳ 2");
+            updateTopDTB('dtbHk2'); 
+
+        } else if (val === 'CN') {
+            subTitle.innerHTML = 'Cả năm tổng kết · Hệ thống ePMS · Thông tư 22/2021';
+            colsChiTiet.forEach(el => el.style.display = 'none'); 
+            colsDtb1.forEach(el => el.style.display = ''); colsDtb2.forEach(el => el.style.display = ''); colsDtbCn.forEach(el => el.style.display = '');
+            document.querySelectorAll('.score-row').forEach(row => capNhatXepLoai(row, parseFloat(row.dataset.dtbCn)));
+            
+            const chotCaNam = hk2_val ? hk2_val : (hk1_val ? hk1_val : "");
+            updateTopCard(chotCaNam, "Cả năm (Dựa theo tổng kết)");
+            updateTopDTB('dtbCn'); 
+        }
+    }
+    // ========================================================
+    // LOGIC ĐỔI HỌC KỲ BẢNG CHUYÊN CẦN (SIÊU TỐC KHÔNG RELOAD)
+    // ========================================================
+    window.chuyenHocKyChuyenCan = function() {
+        // Lấy giá trị đang chọn trong dropdown (HK1, HK2, CN)
+        const val = document.getElementById('chon-hk-chuyen-can').value;
+        const box = document.getElementById('box-so-lieu-cc');
+        
+        // Trỏ vào 4 cái lỗ trống trên mặt tiền HTML
+        const lbTong = document.getElementById('cc-tong-buoi');
+        const lbCoMat = document.getElementById('cc-co-mat');
+        const lbVcp = document.getElementById('cc-vang-cp');
+        const lbVkp = document.getElementById('cc-vang-kp');
+
+        // Gắn hậu tố để moi số liệu từ bộ nhớ ngầm
+        let suffix = "";
+        if (val === "HK1") suffix = "hk1";
+        else if (val === "HK2") suffix = "hk2";
+        else if (val === "CN") suffix = "cn";
+
+        // Tạo hiệu ứng mờ đi 0.15s rồi hiện số mới lên cho đẹp
+        box.style.opacity = 0.4;
+        setTimeout(() => {
+            lbTong.textContent = box.getAttribute(`data-${suffix}-tong`);
+            lbCoMat.textContent = box.getAttribute(`data-${suffix}-comat`);
+            lbVcp.textContent = box.getAttribute(`data-${suffix}-vcp`);
+            lbVkp.textContent = box.getAttribute(`data-${suffix}-vkp`);
+            
+            box.style.opacity = 1;
+        }, 150);
+    };
+
+    // Khi người dùng vừa mở trang web lên, bắt nó tự động chạy hàm này 1 lần để bơm số HK1 lên màn hình
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('chon-hk-chuyen-can')) {
+            chuyenHocKyChuyenCan();
+        }
+    });
+    // ========================================================
+    // HÀM HIỂN THỊ TOAST (thay thế alert() mặc định)
+    // ========================================================
+    function showToast(message, type = 'info', duration = 3000) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const icons = { success: 'fa-check', warning: 'fa-exclamation', error: 'fa-xmark', info: 'fa-info' };
+        const item = document.createElement('div');
+        item.className = `toast-item ${type}`;
+        item.innerHTML = `
+            <div class="toast-icon"><i class="fa-solid ${icons[type] || icons.info}"></i></div>
+            <div>${message}</div>
+        `;
+        container.appendChild(item);
+        setTimeout(() => {
+            item.classList.add('hide');
+            setTimeout(() => item.remove(), 250);
+        }, duration);
+    }
+
+    // ========================================================
+    // LOGIC ĐẾM THÔNG BÁO VÀ ĐÁNH DẤU ĐÃ ĐỌC (BẢN CHỐNG LÌ)
+    // ========================================================
+    // ========================================================
+    // LOGIC ĐẾM THÔNG BÁO VÀ ĐÁNH DẤU ĐÃ ĐỌC (BẢN CHỐNG LÌ)
+    // ========================================================
+    
+    // 1. Chạy ngay khi mở web: Đối chiếu số thông báo mới và cũ
+    document.addEventListener('DOMContentLoaded', function() {
+        const badge = document.getElementById('badge-thong-bao');
+        if (badge) {
+            const tongHienTai = parseInt(badge.getAttribute('data-tong')) || 0;
+            // Lục bộ nhớ trình duyệt xem em học sinh này đã xem bao nhiêu cái rồi
+            const soDaDoc = parseInt(localStorage.getItem('tb_da_doc_{{ hs.id }}')) || 0;
+            
+            if (tongHienTai > soDaDoc) {
+                // Phép thuật: Chỉ hiển thị số lượng thông báo MỚI chưa đọc
+                badge.textContent = tongHienTai - soDaDoc;
+            } else {
+                // XÓA SỔ hoàn toàn cục màu đỏ khỏi web (Mạnh hơn style.display = 'none')
+                badge.remove();
+            }
+        }
+    });
+
+    // 2. Kích hoạt khi bấm nút "Đánh dấu tất cả đã đọc"
+    window.danhDauDaDoc = function() {
+        const badge = document.getElementById('badge-thong-bao');
+        
+        if (badge) {
+            // Lưu tổng số thông báo hiện tại vào trí nhớ của trình duyệt
+            const tongHienTai = parseInt(badge.getAttribute('data-tong')) || 0;
+            localStorage.setItem('tb_da_doc_{{ hs.id }}', tongHienTai);
+            
+            // XÓA SỔ cục màu đỏ ngay lập tức trước mắt người dùng
+            badge.remove();
+            
+            // Làm mờ và chuyển màu các khung thông báo sang xám (hiệu ứng cực xịn)
+            document.querySelectorAll('.notif-item').forEach(item => {
+                item.style.opacity = '0.5';
+                item.style.filter = 'grayscale(100%)'; 
+            });
+            
+            // Bắn thông báo góc màn hình
+            if (typeof showToast === 'function') {
+                showToast('Tuyệt vời! Đã đánh dấu đọc tất cả thông báo.', 'success');
+            } else {
+                alert('Tuyệt vời! Đã đánh dấu đọc tất cả thông báo.');
+            }
+        } else {
+            // Nhỡ người dùng bấm nút 2 lần thì báo cho họ biết là đọc rồi
+            if (typeof showToast === 'function') {
+                showToast('Bạn đã đọc hết thông báo rồi nhé!', 'success');
+            } else {
+                alert('Bạn đã đọc hết thông báo rồi nhé!');
+            }
+        }
+    };
+    window.toggleChiTietLyLich = function() {
+    const box = document.getElementById('chi-tiet-ly-lich');
+    box.style.display = (box.style.display === 'none') ? '' : 'none';
+};
+// ========================================================
+    // HÀM TỰ ĐỘNG LẤY NĂM HỌC HIỆN TẠI (Bổ sung để hết lỗi kẹt nút)
+    // ========================================================
+    function layNamHocHienTai() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        if (month >= 8) {
+            return year + '–' + (year + 1);
+        } else {
+            return (year - 1) + '–' + year;
+        }
+    }
+// ========================================================
+    // LOGIC XUẤT FILE EXCEL BẢNG ĐIỂM (HỌC SINH)
+    // ========================================================
+    function xuatBangDiemExcel() {
+        const btn = document.getElementById('btn-xuat-diem-excel');
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = 'Đang xuất Excel...';
+        btn.disabled = true;
+
+        // Lấy thông tin Header từ biến của Học sinh
+        const hocKyVal = document.getElementById('chon-hoc-ky').value;
+        const hocKyText = document.getElementById('chon-hoc-ky').selectedOptions[0].text;
+        const namHoc = layNamHocHienTai();
+        const tenHS = "{{ hs.ho_ten|escapejs }}";
+        const lopHS = "{{ hs.lop_hoc.ten_lop|default:'Chưa xếp lớp'|escapejs }}";
+        const maHS  = "{{ hs.ma_hoc_sinh|escapejs }}";
+        const hanhKiem = document.getElementById('the-hanh-kiem').textContent.trim() || '—';
+
+        // Gom điểm từng môn theo học kỳ
+        const key = hocKyVal === 'HK1' ? 'hk1' : (hocKyVal === 'HK2' ? 'hk2' : null);
+        let tongDtb = 0, soMonTinhDtb = 0;
+        let hangHtml = '';
+        let stt = 1;
+
+        document.querySelectorAll('.score-row').forEach(row => {
+            const tenMon = row.querySelector('td').textContent.trim();
+            const get = (h, f) => {
+                const v = row.getAttribute(`data-${h}-${f}`);
+                return (v && !isNaN(parseFloat(v))) ? parseFloat(v).toFixed(1) : '';
+            };
+
+            let tx1, tx2, tx3, gk, ck, dtb;
+            if (hocKyVal === 'CN') {
+                tx1 = tx2 = tx3 = gk = ck = ''; 
+                dtb = row.dataset.dtbCn || '';
+            } else {
+                tx1 = get(key, 'tx1'); tx2 = get(key, 'tx2'); tx3 = get(key, 'tx3');
+                gk  = get(key, 'gk');  ck  = get(key, 'ck');
+                dtb = (key === 'hk1') ? (row.dataset.dtbHk1 || '') : (row.dataset.dtbHk2 || '');
+            }
+
+            let xepLoai = '';
+            const dtbNum = parseFloat(dtb);
+            if (!isNaN(dtbNum)) {
+                tongDtb += dtbNum; soMonTinhDtb++;
+                xepLoai = dtbNum >= 8.0 ? 'Tốt' : dtbNum >= 6.5 ? 'Khá' : dtbNum >= 5.0 ? 'Đạt' : 'Chưa đạt';
+            }
+
+            // Tạo từng dòng (Kẻ khung đen trực tiếp bằng CSS)
+            hangHtml += `<tr>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${stt++}</td>
+                <td style="border: 0.5pt solid #000000; text-align: left; vertical-align: middle; padding-left: 5px;">${tenMon}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${tx1}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${tx2}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${tx3}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${gk}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${ck}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle; font-weight: bold;">${dtb}</td>
+                <td style="border: 0.5pt solid #000000; text-align: center; vertical-align: middle;">${xepLoai}</td>
+            </tr>`;
+        });
+
+        const dtbChung = soMonTinhDtb > 0 ? (tongDtb / soMonTinhDtb).toFixed(1) : '';
+
+        // =======================================================
+        // VẼ BẢNG EXCEL VÀ THÔNG TIN HỌC SINH Ở TRÊN CÙNG
+        // =======================================================
+        const excelHtml = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="utf-8">
+            <style>
+                table { border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt; }
+            </style>
+        </head>
+        <body>
+            <table border="0" cellpadding="0" cellspacing="0" width="850">
+                <colgroup>
+                    <col width="45">  <!-- STT -->
+                    <col width="280"> <!-- Môn học -->
+                    <col width="60">  <!-- TX1 -->
+                    <col width="60">  <!-- TX2 -->
+                    <col width="60">  <!-- TX3 -->
+                    <col width="70">  <!-- GK -->
+                    <col width="70">  <!-- CK -->
+                    <col width="70">  <!-- ĐTB -->
+                    <col width="90">  <!-- Xếp loại -->
+                </colgroup>
+
+                <tr>
+                    <td colspan="9" style="font-size: 16pt; font-weight: bold; text-align: center; vertical-align: middle; height: 30px;">PHIẾU BÁO KẾT QUẢ HỌC TẬP</td>
+                </tr>
+                <tr>
+                    <td colspan="9" style="font-size: 12pt; text-align: center; font-style: italic; vertical-align: top;">${hocKyText} — Năm học ${namHoc}</td>
+                </tr>
+                <tr><td colspan="9" style="height: 15px;"></td></tr>
+                
+                <tr>
+                    <td colspan="4" style="text-align: left; vertical-align: middle;"><strong>Họ và tên học sinh:</strong> ${tenHS}</td>
+                    <td colspan="5" style="text-align: left; vertical-align: middle;"><strong>Mã học sinh:</strong> ${maHS}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align: left; vertical-align: middle;"><strong>Lớp:</strong> ${lopHS}</td>
+                    <td colspan="5" style="text-align: left; vertical-align: middle;"><strong>Hạnh kiểm:</strong> ${hanhKiem}</td>
+                </tr>
+                <tr><td colspan="9" style="height: 10px;"></td></tr>
+                
+                <tr>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle; height: 25px;">STT</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">Môn học</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">TX1</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">TX2</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">TX3</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">Giữa kỳ</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">Cuối kỳ</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">ĐTB</td>
+                    <td style="border: 0.5pt solid #000000; background-color: #D9E1F2; text-align: center; font-weight: bold; vertical-align: middle;">Xếp loại</td>
+                </tr>
+                
+                ${hangHtml}
+                
+                <tr>
+                    <td colspan="7" style="border: 0.5pt solid #000000; text-align: right; font-weight: bold; vertical-align: middle; height: 25px; padding-right: 10px;">Điểm trung bình chung:</td>
+                    <td colspan="2" style="border: 0.5pt solid #000000; text-align: center; font-weight: bold; color: red; vertical-align: middle;">${dtbChung}</td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        `;
+
+        // Tạo file và Tự động tải xuống
+        const blob = new Blob(['\ufeff', excelHtml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `BangDiem_${tenHS}_${hocKyText}`.replace(/\s+/g, '_') + '.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Phục hồi lại nút
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }
+</script>
+{% endblock %}
